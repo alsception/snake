@@ -1,5 +1,6 @@
 Simple implementation of a popular snake game in c language for linux terminal
-Eat food and grow snake until death by eating the snake's body
+
+Eat food and grow snake until death by eating the snake's body.
 
 -----------------------------------------------------------------
 
