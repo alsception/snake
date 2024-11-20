@@ -1,0 +1,46 @@
+Snake todo list:
+
+buidl:
+gcc sigswitch.c -o sigswitch
+run: ./sigswitch
+
+
+---------------------------------------------------------------
+
+Main:
+1. make it moving in 1 direction [DONE]
+2. read keyboard event for direction [DONE]
+3. add body [DONE-NEED-FIX]-FIXED
+-------------------------------------
+4. add food DONE
+    5. generate food randomly DONE
+6. body++ on eating food - DONE add variable
+7. Alghoritm change: instead of refreshing whole screen only update where necessary, if possible? - DONE, looks like
++) Refactor: have 1 function for updating matrix, one for rendering
+8. odbiti se od ivice i dijagonalno?++
+------------------------------------
+9. Refactor food detection, dont create ond body
+10. Body collision detection DONE
+11. REALOCATE MEMORY IF WINDOW SIZE IS CHANGED
+-----------------------------------------------
+12. Add different skins and options, cheats
+13. git
+
+Minor:
+1. Update header info
+2. Add colors.
+
+Bugfix:
+1. remove flashing :/ - DONE by 
+2. Why theres 2 heads? [DONE]
+3. ivice
+4. body updating DONE
+5. BUG: missing last cycle new line print +
+6. AND ALSO PLS REALOCATE MEMORY IF WINDOW SIZE IS CHANGED
+7. header line redraw
+
+Edge cases:
+1. sta ako su glava i food izvan ili preko linije ili na liniji
+
+x - instead of all body elements update only first and ending
+also screen updae only cganged if possibley
