@@ -28,22 +28,27 @@ int xOffset = 0;
 int headPositionX = 21;
 int headPositionY = 22;
 
-int millis = 50;
+int millis = 50;//50;
 int millisFast = 25;
 int millisMedium = 75;
 int millisSlow = 100;
 
 int *yBody;
 int *xBody;
+int *yWall;
+int *xWall;
 int direction = 'R'; // R for right, L for left, U for up, D for down
 int foodX = 0;
 int foodY = 0;
-int length = 15;//15 tested max with 1115
+int length = 30;//15 tested max with 1115
 int bodyIncrement = 15;//35
 int foodEaten = 0;
-int cf = 100; //Number of cycles to completely redraw the screen (Constant redrawing causes flashing, but neccessary)
+int cf = 1000; //Number of cycles to completely redraw the screen (Constant redrawing causes flashing, but neccessary)
+int wallSize = 0;
+int maxLength = 1000;
 
 bool godMode = false;
+bool autoMode = false;
 bool cursorVisible = false;
 bool generateFoodRandomly = true;
 
@@ -71,6 +76,8 @@ void cleanUp()
     disableNonCanonicalMode();
     free(yBody);
     free(xBody);
+    free(yWall);
+    free(xWall);
 }
 
 // Function to read keypresses including arrow keys
@@ -101,20 +108,22 @@ int handleKeypress()
     int ch = readKeyPress();
     if (ch != EOF)
     {
-        if ((ch == 'a' || ch == 'A') && direction != 'R')
+        if ((ch == 'a' || ch == 'A') && (direction != 'R' || godMode))
             direction = 'L';
 
-        else if ((ch == 'd' || ch == 'D') && direction != 'L')
+        else if ((ch == 'd' || ch == 'D') && (direction != 'L' || godMode))
             direction = 'R';
 
-        else if ((ch == 'w' || ch == 'W') && direction != 'D')
+        else if ((ch == 'w' || ch == 'W') && (direction != 'D' || godMode))
             direction = 'U';
 
-        else if ((ch == 's' || ch == 'S') && direction != 'U')
+        else if ((ch == 's' || ch == 'S') && (direction != 'U' || godMode))
             direction = 'D';
 
         else if (ch == 'q' || ch == 'Q')
             return 0; // Quit the game
+
+            //TODO: add pause
     }
     return 1;
 }
@@ -129,6 +138,55 @@ void getWindowSize()
     }
     rows = w.ws_row;
     columns = w.ws_col;
+    int maxLength = rows * columns;
+}
+
+void generateFood()
+{
+    //Food is generated randomly
+    foodX = (rand() % (columns - 4) + 2);
+    foodY = (rand() % (rows - 4) + 2);
+}
+
+void initBody()
+{  
+    yBody = (int *)malloc(maxLength * sizeof(int));
+    xBody = (int *)malloc(maxLength * sizeof(int));
+    
+    // Initialize array
+    for (int i = 0; i < maxLength; i++)
+    {
+        yBody[i] = 0;
+        xBody[i] = 0;
+    }    
+}
+
+void initWall()
+{
+    //Init wall
+    yWall = (int *)malloc(maxLength * sizeof(int));
+    xWall = (int *)malloc(maxLength * sizeof(int));
+    
+    // Initialize array
+    for (int i = 0; i < maxLength; i++)
+    {
+        yWall[i] = 0;
+        xWall[i] = 0;
+    }  
+
+    //add 
+    for (int i = 10; i < 25; i++)
+    {
+        yWall[i] = 10;
+        xWall[i] = i;
+        wallSize++;
+    }    
+/*
+    for (int i = 100; i < 125; i++)
+    {
+        yWall[i] = i;
+        xWall[i] = 25;
+    }    */
 }
 
 void initialize()
@@ -142,19 +200,9 @@ void initialize()
     //TODO 
     /*** PLS REALOCATE MEMORY IF WINDOW SIZE IS CHANGED ***/
 
-    int maxLength = rows * columns;
-    yBody = (int *)malloc(maxLength * sizeof(int));
-    xBody = (int *)malloc(maxLength * sizeof(int));
-    
-    // Initialize array
-    for (int i = 0; i < maxLength; i++)
-    {
-        yBody[i] = 0;
-        xBody[i] = 0;
-    }    
-
-    foodX = (rand() % (columns - 4) + 2);
-    foodY = (rand() % (rows - 4) + 2);
+    initBody();
+    initWall();
+    generateFood();
 
     enableNonCanonicalMode();
     fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK); // Set input to non-blocking mode
@@ -175,25 +223,7 @@ void resetCursorPosition()
     } 
 }
 
-// Upper line with informations
-void printHeaderLine()
-{   
-    printf(
-        "\r" ANSI_COLOR_BLUE "Terminal size: "
-        "y:%d rows | "
-        "x:%d columns | "
-        "y-offset: %d | headPositionX: %d | headPositionY: %d | refresh rate: %d | foodX: %d | foodY: %d | length: %d" 
-        ANSI_COLOR_RESET, rows, columns, yOffset, headPositionX, headPositionY, millis, foodX, foodY, length);
-}
 
-void printGameOverScreen()
-{
-    printf("\nGame Over\n");
-    printf("Food eaten: %d \n", foodEaten);
-    printf("Length achieved: %d \n", length);
-    printf("Cycles played: %lld \n", cycle);
-    printf("\e[?25h"); // Reenable cursor
-}
 
 // Return true if food is present at given x,y position
 bool checkFood(int x, int y)
@@ -227,6 +257,18 @@ int checkBody(int x, int y)
     return -1;
 }
 
+bool checkWall(int x, int y)
+{
+    for (int i = 0; i < maxLength; i++)
+    {
+        if (x == xWall[i] && y == yWall[i])
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Return true if heads position is collided with one of the body elements
 bool detectBodyCollision()
 {
@@ -255,13 +297,6 @@ void layEgg()
     foodY = yBody[length-1];
 }
 
-void generateFood()
-{
-    //Food is generated randomly
-    foodX = (rand() % (columns - 4) + 2);
-    foodY = (rand() % (rows - 4) + 2);
-}
-
 void eat()
 {
     if (generateFoodRandomly)
@@ -279,6 +314,26 @@ void eat()
 
     length += bodyIncrement;
     foodEaten++;
+}
+
+// Upper line with informations
+void printHeaderLine()
+{   
+    printf(
+        "\r" ANSI_COLOR_BLUE "Terminal size: "
+        "y:%d rows | "
+        "x:%d columns | "
+        "y-offset: %d | headPositionX: %d | headPositionY: %d | refresh rate: %d | foodX: %d | foodY: %d | length: %d" 
+        ANSI_COLOR_RESET, rows, columns, yOffset, headPositionX, headPositionY, millis, foodX, foodY, length);
+}
+
+void printGameOverScreen()
+{
+    printf("\nGame Over\n");
+    printf("Food eaten: %d \n", foodEaten);
+    printf("Length achieved: %d \n", length);
+    printf("Cycles played: %lld \n", cycle);
+    printf("\e[?25h"); // Reenable cursor
 }
 
 void printSnakeBody(int bodyIndex)
@@ -341,12 +396,92 @@ void printFood()
     printf( "%s$%s", ANSI_COLOR_FOOD, ANSI_COLOR_RESET );
 }
 
+void printWall()
+{
+    /*if ( cycle % 2 )
+        printf(ANSI_COLOR_GREEN "X" ANSI_COLOR_RESET);
+    else*/
+        printf( "▓" );
+}
+
+void printEmptyContent( int x, int y, int width, int depth )
+{
+    if (y == 1 || y == depth)
+    {
+        if (x == 0 || x == width)
+            printf("+");
+        else
+            printf("=");
+    }
+    else
+    {
+        if (x == 0 || x == width)
+            printf("|");
+        else
+            printf(" ");
+    }
+}
+
+void printContent()
+{
+    int depth = rows - yOffset;
+    int width = columns - 2;
+    int bodyIndex = -1;
+    bool hasHead = false;
+    bool hasFood = false;
+    bool hasWall = false;
+
+    //Screen printing is done line by line starting from top
+    for (int y = 0; y <= depth; y++)
+    {     
+        printf("\n"); // Start at new line
+        for (int x = 0; x <= width; x++)
+        {
+            if (y > 0)
+            {
+                // 1. Check if the screen cell contains head,food or body
+                hasHead = checkHead( x, y );              
+                hasFood = checkFood( x, y );
+                //hasWall = checkWall( x, y );
+                bodyIndex = checkBody( x, y );    
+
+                // 2. Print appropriate element
+                if ( hasHead )
+                {                    
+                    printSnakeHead( bodyIndex );
+                }                
+                else if ( hasFood )
+                {
+                    printFood();
+                }
+                else if ( hasWall )
+                {
+                    printWall();
+                }
+                else if ( bodyIndex>=0 )
+                {
+                    printSnakeBody( bodyIndex );
+                }
+                else
+                {
+                    printEmptyContent( x, y, width, depth );
+                }
+            }
+        }
+        
+    }    
+    fflush(stdout);
+}
+
 void gameOver()
 {
     disableNonCanonicalMode();
     free(yBody);
     free(xBody);
+    free(yWall);
+    free(xWall);
     printf("\nGame Over\n");
+    printf("Food eaten: %d \n", foodEaten);
     printf("Length achieved: %d \n", length);
     printf("Cycles played: %lld \n", cycle);
     printf("\e[?25h"); // Reenable cursor
@@ -355,30 +490,62 @@ void gameOver()
 
 void updateHeadPosition()
 {
-    if (direction == 'L')
+    if (autoMode && (cycle%100))
     {
-        headPositionX--;
-        if (headPositionX < 1)
-            headPositionX = columns - 2;
+        int z = (rand() % (4) + 0);
+        if (z == 0)
+        {
+            headPositionX--;
+            if (headPositionX < 1)
+                headPositionX = columns - 2;
+        }
+        else if (z == 1)
+        {
+            headPositionX++;
+            if (headPositionX > columns - 1)
+                headPositionX = 1;
+        }
+        else if (z == 2)
+        {
+            headPositionY--;
+            if (headPositionY < 1)
+                headPositionY = rows - 2;
+        }
+        else// if (z == 3)
+        {
+            headPositionY++;
+            if (headPositionY > rows - 1)
+                headPositionY = 1;
+        }
+      
     }
-    else if (direction == 'R')
+    else
     {
-        headPositionX++;
-        if (headPositionX > columns - 1)
-            headPositionX = 1;
+        if (direction == 'L')
+        {
+            headPositionX--;
+            if (headPositionX < 1)
+                headPositionX = columns - 2;
+        }
+        else if (direction == 'R')
+        {
+            headPositionX++;
+            if (headPositionX > columns - 1)
+                headPositionX = 1;
+        }
+        else if (direction == 'U')
+        {
+            headPositionY--;
+            if (headPositionY < 1)
+                headPositionY = rows - 2;
+        }
+        else if (direction == 'D')
+        {
+            headPositionY++;
+            if (headPositionY > rows - 1)
+                headPositionY = 1;
+        }
     }
-    else if (direction == 'U')
-    {
-        headPositionY--;
-        if (headPositionY < 1)
-            headPositionY = rows - 2;
-    }
-    else if (direction == 'D')
-    {
-        headPositionY++;
-        if (headPositionY > rows-1)
-            headPositionY = 1;
-    }       
 }
 
 /* //TODO 
@@ -407,69 +574,6 @@ void updateBodyPosition()
 
     xBody[0] = headPositionX;
     yBody[0] = headPositionY;
-}
-
-void printEmptyContent( int x, int y, int width, int depth )
-{
-    if (y == 1 || y == depth)
-    {
-        if (x == 0 || x == width)
-            printf("+");
-        else
-            printf("=");
-    }
-    else
-    {
-        if (x == 0 || x == width)
-            printf("|");
-        else
-            printf(" ");
-    }
-}
-
-void printContent()
-{
-    int depth = rows - yOffset;
-    int width = columns - 2;
-    int bodyIndex = -1;
-    bool hasHead = false;
-    bool hasFood = false;
-
-    //Screen printing is done line by line starting from top
-    for (int y = 0; y <= depth; y++)
-    {     
-        printf("\n"); // Start at new line
-        for (int x = 0; x <= width; x++)
-        {
-            if (y > 0)
-            {
-                // 1. Check if the screen cell contains head,food or body
-                hasHead = checkHead( x, y );              
-                hasFood = checkFood( x, y );
-                bodyIndex = checkBody( x, y );    
-
-                // 2. Print appropriate element
-                if ( hasHead )
-                {                    
-                    printSnakeHead( bodyIndex );
-                }                
-                else if ( hasFood )
-                {
-                    printFood();
-                }
-                else if ( bodyIndex>=0 )
-                {
-                    printSnakeBody( bodyIndex );
-                }
-                else
-                {
-                    printEmptyContent( x, y, width, depth );
-                }
-            }
-        }
-        
-    }    
-    fflush(stdout);
 }
 
 void updateSnakeData()
@@ -535,7 +639,7 @@ void processArguments(int argc, char **argv)
             generateFoodRandomly=false;
             printf("Laying eggs mode activated.\n");
         }
-         
+
        usleep(1000 * 1000);
     }
 }
