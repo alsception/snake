@@ -65,6 +65,13 @@ void disableNonCanonicalMode()
     tcsetattr(STDIN_FILENO, TCSANOW, &originalSettings);
 }
 
+void cleanUp()
+{
+    disableNonCanonicalMode();
+    free(yBody);
+    free(xBody);
+}
+
 // Function to read keypresses including arrow keys
 int readKeyPress() 
 {
@@ -87,6 +94,30 @@ int readKeyPress()
     return ch; // Return the actual character if it's not an arrow key
 }
 
+int handleKeypress()
+{
+    // Check for keyboard input
+    int ch = readKeyPress();
+    if (ch != EOF)
+    {
+        if ((ch == 'a' || ch == 'A') && direction != 'R')
+            direction = 'L';
+
+        else if ((ch == 'd' || ch == 'D') && direction != 'L')
+            direction = 'R';
+
+        else if ((ch == 'w' || ch == 'W') && direction != 'D')
+            direction = 'U';
+
+        else if ((ch == 's' || ch == 'S') && direction != 'U')
+            direction = 'D';
+
+        else if (ch == 'q' || ch == 'Q')
+            return 0; // Quit the game
+    }
+    return 1;
+}
+
 void getWindowSize()
 {
     struct winsize w;
@@ -99,12 +130,41 @@ void getWindowSize()
     columns = w.ws_col;
 }
 
+void initialize()
+{
+    system("clear");
+    
+    // Initial size print and frame
+    // This is important to get rows and columns    
+    getWindowSize();
+
+    //TODO 
+    /*** PLS REALOCATE MEMORY IF WINDOW SIZE IS CHANGED ***/
+
+    int maxLength = rows * columns;
+    yBody = (int *)malloc(maxLength * sizeof(int));
+    xBody = (int *)malloc(maxLength * sizeof(int));
+    
+    // Initialize array
+    for (int i = 0; i < maxLength; i++)
+    {
+        yBody[i] = 0;
+        xBody[i] = 0;
+    }    
+
+    foodX = (rand() % (columns - 4) + 2);
+    foodY = (rand() % (rows - 4) + 2);
+
+    enableNonCanonicalMode();
+    fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK); // Set input to non-blocking mode
+}
+
 void resetCursorPosition()
 {
     getWindowSize();//update window size
 
+    //TODO 
     //If window size changed -> then clear the screen
-
     //system("clear");
 
     printf("\r"); //go to start of the line
@@ -123,6 +183,15 @@ void printHeaderLine()
         "x:%d columns | "
         "y-offset: %d | headPositionX: %d | headPositionY: %d | refresh rate: %d | foodX: %d | foodY: %d | length: %d" 
         ANSI_COLOR_RESET, rows, columns, yOffset, headPositionX, headPositionY, millis, foodX, foodY, length);
+}
+
+void printGameOverScreen()
+{
+    printf("\nGame Over\n");
+    printf("Food eaten: %d \n", foodEaten);
+    printf("Length achieved: %d \n", length);
+    printf("Cycles played: %lld \n", cycle);
+    printf("\e[?25h"); // Reenable cursor
 }
 
 // Return true if food is present at given x,y position
@@ -168,6 +237,22 @@ bool detectBodyCollision()
         }
     }
     return false;
+}
+
+bool detectEating()
+{
+    //Why this separate function for 1 expression?
+    //Because maybe in the future we would want to detect eating by some other condition
+    return headPositionX == foodX && headPositionY == foodY;
+}
+
+void eat()
+{
+    // eat food and create new food
+    foodX = (rand() % (columns - 4) + 2);
+    foodY = (rand() % (rows - 4) + 2);
+    length += bodyIncrement;
+    foodEaten++;
 }
 
 void printSnakeBody(int bodyIndex)
@@ -265,15 +350,11 @@ void updateHeadPosition()
         headPositionY++;
         if (headPositionY > rows-1)
             headPositionY = 1;
-    }
+    }   
     
-    if(!godMode && detectBodyCollision())
-    {
-        gameOver();        
-    }    
 }
 
-/*
+/* //TODO 
 void resizeBodyIfNeeded() {
     if (length >= ?) {
         n *= 2; // Double the size
@@ -364,105 +445,61 @@ void printContent()
     fflush(stdout);
 }
 
-void printScreen()
+void updateSnakeData()
 {
-    // (temporary lol) Fix:
-    // Every n cycles clear the screen.
-    if( cycle % cf )
-        system("clear");
-    resetCursorPosition();
-    
-    printHeaderLine();
-
     // Update body before head, because it must follow the heads previous position
     updateBodyPosition();
 
     // Update head position based on current direction
     updateHeadPosition();
 
-    if (headPositionX == foodX && headPositionY == foodY)
+    if(!godMode && detectBodyCollision())
     {
-        // eat food and create new food
-        foodX = (rand() % (columns - 4) + 2);
-        foodY = (rand() % (rows - 4) + 2);
-        length += bodyIncrement;
-        foodEaten++;
+        gameOver();        
+    }    
 
+    if (detectEating())
+    {
+        eat();
         updateBodyPosition();        
     }
+}
 
+void render()
+{
+    // (temporary) Fix:
+    // Every n cycles clear the screen.
+    if( cycle % cf )
+        system("clear");
+
+    resetCursorPosition();    
+    printHeaderLine();    
     printContent();
     
     if(!cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
 }
 
+void refreshScreen()
+{
+    updateSnakeData();
+    render();    
+}
+
 int main()
 {
-    system("clear");
-    
-    // Initial size print and frame
-    // This is important to get rows and columns    
-    getWindowSize();
-
-    /***** AND ALSO PLS REALOCATE MEMORY IF WINDOW SIZE IS CHANGED ***/
-
-    int maxLength = rows * columns;
-    yBody = (int *)malloc(maxLength * sizeof(int));
-    xBody = (int *)malloc(maxLength * sizeof(int));
-    
-    // Initialize array
-    for (int i = 0; i < maxLength; i++)
-    {
-        yBody[i] = 0;
-        xBody[i] = 0;
-    }    
-
-    foodX = (rand() % (columns - 4) + 2);
-    foodY = (rand() % (rows - 4) + 2);
-
-    enableNonCanonicalMode();
-    fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK); // Set input to non-blocking mode
-
+    initialize();
+        
     while (1)
     {
         cycle++;
-        // Check for keyboard input
-        int ch = readKeyPress();
-        if (ch != EOF)
-        {
-            if ((ch == 'a' || ch == 'A') && direction != 'R')
-
-                direction = 'L';
-
-            else if ((ch == 'd' || ch == 'D') && direction != 'L')
-
-                direction = 'R';
-
-            else if ((ch == 'w' || ch == 'W') && direction != 'D')
-
-                direction = 'U';
-
-            else if ((ch == 's' || ch == 'S') && direction != 'U')
-
-                direction = 'D';
-
-            else if (ch == 'q' || ch == 'Q')
-
-                break; // Quit the game
-        }
-        // Refresh the screen
-        printScreen();        
+        if(!handleKeypress())
+            break;
+        refreshScreen();        
         usleep(millis * 1000); // Sleep for defined milliseconds
     }
 
-    disableNonCanonicalMode();
-    free(yBody);
-    free(xBody);
+    cleanUp();
+    printGameOverScreen();
 
-    printf("\nGame Over\n");
-    printf("Food eaten: %d \n", foodEaten);
-    printf("Length achieved: %d \n", length);
-    printf("Cycles played: %lld \n", cycle);
-    printf("\e[?25h"); // Reenable cursor
     return 0;
 }

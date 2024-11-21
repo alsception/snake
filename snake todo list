@@ -1,46 +1,45 @@
 Snake todo list:
 
-buidl:
-gcc sigswitch.c -o sigswitch
-run: ./sigswitch
-
+build: gcc snake.c -o snake
+run: ./snake
 
 ---------------------------------------------------------------
 
-Main:
-1. make it moving in 1 direction [DONE]
-2. read keyboard event for direction [DONE]
-3. add body [DONE-NEED-FIX]-FIXED
+Main tasks:
+1. Make head moving in 1 direction [DONE]
+2. Read keyboard event for setting direction (u,d,l,r) [DONE]
+3. Add snakes body [DONE]
 -------------------------------------
-4. add food DONE
-    5. generate food randomly DONE
-6. body++ on eating food - DONE add variable
-7. Alghoritm change: instead of refreshing whole screen only update where necessary, if possible? - DONE, looks like
-+) Refactor: have 1 function for updating matrix, one for rendering
-8. odbiti se od ivice i dijagonalno?++
+4. Add food [DONE]
+5. Generate food randomly [DONE]
+6. Increment body on eating food [DONE]
+7. Screen refresh algorithm change: instead of completely refreshing the whole screen, only update line by line where necessary [DONE]
+8. Refactor: Split screen generating in 1 function for updating data, and 1 for rendering [DONE]
 ------------------------------------
-9. Refactor food detection, dont create ond body
-10. Body collision detection DONE
-11. REALOCATE MEMORY IF WINDOW SIZE IS CHANGED
+9. Refactor: food detection [DONE], dont create food on body [TODO]
+10. Body collision detection [DONE]
+11. REALOCATE MEMORY IF WINDOW SIZE IS CHANGED [TODO]
+12. Initialize git repository [DONE]
 -----------------------------------------------
-12. Add different skins and options, cheats
-13. git
 
 Minor:
 1. Update header info
-2. Add colors.
+2. Add some styling and colors
 
 Bugfix:
-1. remove flashing :/ - DONE by 
-2. Why theres 2 heads? [DONE]
-3. ivice
-4. body updating DONE
-5. BUG: missing last cycle new line print +
-6. AND ALSO PLS REALOCATE MEMORY IF WINDOW SIZE IS CHANGED
-7. header line redraw
+1. Remove flashing :/ [DONE]
+2. Why there's 2 heads? [DONE]
+3. Snake should not go on the walls [TODO]
+4. Body updating [DONE]
+    It was caused by wrong memory allocation
+5. BUG: missing last cycle new line print + [DONE]
+7. Header line redraw [DONE]
 
 Edge cases:
-1. sta ako su glava i food izvan ili preko linije ili na liniji
+1. Sta ako su glava i food izvan ili preko linije ili na liniji 
+2. Ili sta ako zmijica popuni ceo ekran?
 
-x - instead of all body elements update only first and ending
-also screen updae only cganged if possibley
+Other:
+1. Odbiti se od ivice ili dijagonalno?
+2. Add different skins and options, cheats
+3. Instead of reassigning all body elements, is it possible to update only first and last?
