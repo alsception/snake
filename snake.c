@@ -6,6 +6,7 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <stdbool.h> // Include this header to use bool, true, and false
+#include <string.h>
 
 // Colors
 #define ANSI_COLOR_RED "\x1b[31m"
@@ -32,7 +33,6 @@ int millisFast = 25;
 int millisMedium = 75;
 int millisSlow = 100;
 
-// Allocate initial array
 int *yBody;
 int *xBody;
 int direction = 'R'; // R for right, L for left, U for up, D for down
@@ -45,6 +45,7 @@ int cf = 100; //Number of cycles to completely redraw the screen (Constant redra
 
 bool godMode = false;
 bool cursorVisible = false;
+bool generateFoodRandomly = true;
 
 // Function to enable non-canonical mode
 // https://stackoverflow.com/questions/358342/canonical-vs-non-canonical-terminal-input
@@ -246,11 +247,36 @@ bool detectEating()
     return headPositionX == foodX && headPositionY == foodY;
 }
 
-void eat()
+
+void layEgg()
+{    
+    //Food is actually layed egg from snake's tail
+    foodX = xBody[length-1];
+    foodY = yBody[length-1];
+}
+
+void generateFood()
 {
-    // eat food and create new food
+    //Food is generated randomly
     foodX = (rand() % (columns - 4) + 2);
     foodY = (rand() % (rows - 4) + 2);
+}
+
+void eat()
+{
+    if (generateFoodRandomly)
+    {
+        do
+        {
+            generateFood();
+        } 
+        while (checkBody(foodX, foodY) > -1);
+    }
+    else
+    {
+        layEgg();
+    }
+
     length += bodyIncrement;
     foodEaten++;
 }
@@ -261,7 +287,9 @@ void printSnakeBody(int bodyIndex)
     if (bodyIndex > length - 10)
     {
         // tail //◘ •
-        if (bodyIndex % 2)
+        if(bodyIndex == length-2)
+            printf(ANSI_COLOR_GREEN "◘" ANSI_COLOR_RESET);
+        else if (bodyIndex % 2)
             printf(ANSI_COLOR_GREEN "•" ANSI_COLOR_RESET);
         else
             printf(ANSI_COLOR_CYAN "•" ANSI_COLOR_RESET);
@@ -350,8 +378,7 @@ void updateHeadPosition()
         headPositionY++;
         if (headPositionY > rows-1)
             headPositionY = 1;
-    }   
-    
+    }       
 }
 
 /* //TODO 
@@ -485,8 +512,39 @@ void refreshScreen()
     render();    
 }
 
-int main()
+void processArguments(int argc, char **argv)
 {
+    char gm[] = "god-mode";
+    char le[] = "lay-eggs";
+
+    
+    for (int i = 1; i < argc; ++i)
+    {
+        int result;
+        
+        result = strcmp(gm, argv[i]);
+        if (result == 0) 
+        {
+            godMode = true;
+            printf("God mode activated\n");
+        } 
+    
+        result = strcmp(le, argv[i]);
+        if (result == 0) 
+        {
+            generateFoodRandomly=false;
+            printf("Laying eggs mode activated.\n");
+        }
+         
+       usleep(1000 * 1000);
+    }
+}
+
+int main(int argc, char **argv)
+{
+    if(argc > 0)
+        processArguments(argc,argv);    
+
     initialize();
         
     while (1)
