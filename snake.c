@@ -40,7 +40,7 @@ int *xWall;
 int direction = 'R'; // R for right, L for left, U for up, D for down
 int foodX = 0;
 int foodY = 0;
-int length = 30;//15 tested max with 1115
+int length = 14;//15 tested max with 1115
 int bodyIncrement = 15;//35
 int foodEaten = 0;
 int cf = 1000; //Number of cycles to completely redraw the screen (Constant redrawing causes flashing, but neccessary)
@@ -516,8 +516,8 @@ void updateHeadPosition()
             headPositionY++;
             if (headPositionY > rows - 1)
                 headPositionY = 1;
-        }
-      
+    }
+
     }
     else
     {
@@ -525,25 +525,25 @@ void updateHeadPosition()
         {
             headPositionX--;
             if (headPositionX < 1)
-                headPositionX = columns - 2;
+                headPositionX = columns - 3;
         }
         else if (direction == 'R')
         {
             headPositionX++;
-            if (headPositionX > columns - 1)
+            if (headPositionX > columns - 3)
                 headPositionX = 1;
         }
         else if (direction == 'U')
         {
             headPositionY--;
-            if (headPositionY < 1)
-                headPositionY = rows - 2;
+            if (headPositionY < yOffset)
+                headPositionY = rows - 3;
         }
         else if (direction == 'D')
         {
             headPositionY++;
-            if (headPositionY > rows - 1)
-                headPositionY = 1;
+            if (headPositionY > rows - yOffset-1)
+                headPositionY = yOffset;
         }
     }
 }
