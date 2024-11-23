@@ -14,3 +14,6 @@ To run:
 
 To build:
 $: gcc snake.c -o snake
+
+Preview
+![](https://github.com/churislav/snake/blob/main/snake%20preview.gif)
