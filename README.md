@@ -16,4 +16,4 @@ To build:
 $: gcc snake.c -o snake
 
 Preview
-![](https://github.com/churislav/snake/blob/main/snake%20preview.gif)
+![image](https://github.com/user-attachments/assets/dea7fdbc-527a-4447-b800-996743a1a47b)
