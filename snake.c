@@ -35,8 +35,6 @@ int millisSlow = 100;
 
 int *yBody;
 int *xBody;
-int *yWall;
-int *xWall;
 int direction = 'R'; // R for right, L for left, U for up, D for down
 int foodX = 0;
 int foodY = 0;
@@ -51,6 +49,12 @@ bool godMode = false;
 bool autoMode = false;
 bool cursorVisible = false;
 bool generateFoodRandomly = true;
+
+/**
+ * TODO:
+ * 1. If columns(width) < certain size, then dont print the header line.
+ *  * 
+ */
 
 // Function to enable non-canonical mode
 // https://stackoverflow.com/questions/358342/canonical-vs-non-canonical-terminal-input
@@ -76,8 +80,6 @@ void cleanUp()
     disableNonCanonicalMode();
     free(yBody);
     free(xBody);
-    free(yWall);
-    free(xWall);
 }
 
 // Function to read keypresses including arrow keys
@@ -161,34 +163,6 @@ void initBody()
     }    
 }
 
-void initWall()
-{
-    //Init wall
-    yWall = (int *)malloc(maxLength * sizeof(int));
-    xWall = (int *)malloc(maxLength * sizeof(int));
-    
-    // Initialize array
-    for (int i = 0; i < maxLength; i++)
-    {
-        yWall[i] = 0;
-        xWall[i] = 0;
-    }  
-
-    //add 
-    for (int i = 10; i < 25; i++)
-    {
-        yWall[i] = 10;
-        xWall[i] = i;
-        wallSize++;
-    }    
-/*
-    for (int i = 100; i < 125; i++)
-    {
-        yWall[i] = i;
-        xWall[i] = 25;
-    }    */
-}
-
 void initialize()
 {
     system("clear");
@@ -197,11 +171,16 @@ void initialize()
     // This is important to get rows and columns    
     getWindowSize();
 
+    headPositionX = columns/4;
+    headPositionY = rows/2;
+
+    //TODO:
+    //Take millis from command line or menu
+
     //TODO 
     /*** PLS REALOCATE MEMORY IF WINDOW SIZE IS CHANGED ***/
 
     initBody();
-    initWall();
     generateFood();
 
     enableNonCanonicalMode();
@@ -222,8 +201,6 @@ void resetCursorPosition()
         printf("\033[A");
     } 
 }
-
-
 
 // Return true if food is present at given x,y position
 bool checkFood(int x, int y)
@@ -257,18 +234,6 @@ int checkBody(int x, int y)
     return -1;
 }
 
-bool checkWall(int x, int y)
-{
-    for (int i = 0; i < maxLength; i++)
-    {
-        if (x == xWall[i] && y == yWall[i])
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
 // Return true if heads position is collided with one of the body elements
 bool detectBodyCollision()
 {
@@ -288,7 +253,6 @@ bool detectEating()
     //Because maybe in the future we would want to detect eating by some other condition
     return headPositionX == foodX && headPositionY == foodY;
 }
-
 
 void layEgg()
 {    
@@ -323,7 +287,7 @@ void printHeaderLine()
         "\r" ANSI_COLOR_BLUE "Terminal size: "
         "y:%d rows | "
         "x:%d columns | "
-        "y-offset: %d | headPositionX: %d | headPositionY: %d | refresh rate: %d | foodX: %d | foodY: %d | length: %d" 
+        "y-offset: %d | headPositionX: %d | headPositionY: %d | refresh rate: %d | foodX: %d | foodY: %d | length: %d     "//empty space is need 
         ANSI_COLOR_RESET, rows, columns, yOffset, headPositionX, headPositionY, millis, foodX, foodY, length);
 }
 
@@ -365,7 +329,8 @@ void printSnakeBody(int bodyIndex)
         }
         else
         {
-            if (cycle % 2){
+            if (cycle % 2)
+            {
                 printf(ANSI_COLOR_CYAN "♦" ANSI_COLOR_RESET);
             }
             else
@@ -442,7 +407,6 @@ void printContent()
                 // 1. Check if the screen cell contains head,food or body
                 hasHead = checkHead( x, y );              
                 hasFood = checkFood( x, y );
-                //hasWall = checkWall( x, y );
                 bodyIndex = checkBody( x, y );    
 
                 // 2. Print appropriate element
@@ -478,8 +442,6 @@ void gameOver()
     disableNonCanonicalMode();
     free(yBody);
     free(xBody);
-    free(yWall);
-    free(xWall);
     printf("\nGame Over\n");
     printf("Food eaten: %d \n", foodEaten);
     printf("Length achieved: %d \n", length);
@@ -516,7 +478,7 @@ void updateHeadPosition()
             headPositionY++;
             if (headPositionY > rows - 1)
                 headPositionY = 1;
-    }
+        }
 
     }
     else
@@ -598,10 +560,12 @@ void updateSnakeData()
 
 void render()
 {
+    /** Looks like this fix causes too much flashing when tried on other machine (ubuntu)
     // (temporary) Fix:
     // Every n cycles clear the screen.
     if( cycle % cf )
         system("clear");
+    */
 
     resetCursorPosition();    
     printHeaderLine();    
@@ -620,7 +584,7 @@ void processArguments(int argc, char **argv)
 {
     char gm[] = "god-mode";
     char le[] = "lay-eggs";
-
+    char at[] = "auto";
     
     for (int i = 1; i < argc; ++i)
     {
@@ -638,6 +602,13 @@ void processArguments(int argc, char **argv)
         {
             generateFoodRandomly=false;
             printf("Laying eggs mode activated.\n");
+        }
+
+        result = strcmp(at, argv[i]);
+        if (result == 0) 
+        {
+            autoMode=true;
+            printf("Auto mode activated.\n");
         }
 
        usleep(1000 * 1000);
