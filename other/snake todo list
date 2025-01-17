@@ -43,3 +43,27 @@ Other:
 1. Odbiti se od ivice ili dijagonalno?
 2. Add different skins and options, cheats
 3. Instead of reassigning all body elements, is it possible to update only first and last?
+4. Pause [DONE]
+------------------------------------------------------
+
+From code:
+
+
+1. Take millis from command line or menu
+
+2. REALOCATE MEMORY IF WINDOW SIZE IS CHANGED
+
+3. If window size changed -> then clear the screen
+   system("clear");
+
+4. resizeBodyIfNeeded
+
+/**
+ * TODO:
+ * 5. If columns(width) < certain size, then dont print the header line.
+ * 6. If rows <5 OR columns < 155 -> exit with message
+ * 7. update commit instructions: gcc src/snake.c -o bin/snake 
+   8. Edge case: test with small screen and god-mode when you fill up the whole screen
+ */
+
+

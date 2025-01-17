@@ -15,6 +15,7 @@
 #define ANSI_COLOR_BLUE "\x1b[34m"
 #define ANSI_COLOR_MAGENTA "\x1b[35m"
 #define ANSI_COLOR_CYAN "\x1b[36m"
+#define ANSI_COLOR_WHITE "\x1b[37m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
 // Variables
@@ -52,13 +53,6 @@ bool cursorVisible = false;
 bool generateFoodRandomly = true;
 bool pausa = false;
 
-
-/**
- * TODO:
- * 1. If columns(width) < certain size, then dont print the header line.
- * 2. If rows <5 OR columns < 155 -> exit with message
- * 3. update commit instructions: gcc src/snake.c -o bin/snake 
- */
 
 // Function to enable non-canonical mode
 // https://stackoverflow.com/questions/358342/canonical-vs-non-canonical-terminal-input
@@ -130,9 +124,8 @@ int handleKeypress()
             pausa = !pausa;
 
         else if (ch == 'q' || ch == 'Q')
-            return 0; // Quit the game
+            return 0; // Quit the game        
 
-            //TODO: add pause
     }
     return 1;
 }
@@ -178,14 +171,14 @@ void initialize()
     // This is important to get rows and columns    
     getWindowSize();
 
+    if(columns < 7 || rows < 5 )
+    {
+        printf("\nScreen is too small to play snake :/ \nPlease ensure at least 5 rows height and 7 columns width (found %i r, %i c).\n",rows,columns);
+        exit(0);
+    }
+
     headPositionX = columns/4;
     headPositionY = rows/2;
-
-    //TODO:
-    //Take millis from command line or menu
-
-    //TODO 
-    /*** PLS REALOCATE MEMORY IF WINDOW SIZE IS CHANGED ***/
 
     initBody();
     generateFood();
@@ -196,13 +189,10 @@ void initialize()
 
 void resetCursorPosition()
 {
-    getWindowSize();//update window size
-
-    //TODO 
-    //If window size changed -> then clear the screen
-    //system("clear");
+    getWindowSize();//update window size    
 
     printf("\r"); //go to start of the line
+
     for(int i = 0; i< rows; i++)
     {
         printf("\033[A");
@@ -290,12 +280,25 @@ void eat()
 // Upper line with informations
 void printHeaderLine()
 {   
-    printf(
-        "\r" ANSI_COLOR_BLUE "Terminal size: "
-        "y:%d rows | "
-        "x:%d columns | "
-        "y-offset: %d | headPositionX: %d | headPositionY: %d | refresh rate: %d | foodX: %d | foodY: %d | length: %d     "//empty space is need 
-        ANSI_COLOR_RESET, rows, columns, yOffset, headPositionX, headPositionY, millis, foodX, foodY, length);
+    if(columns<155)
+    {
+        //Make it responsive :)
+        printf( "\r" ANSI_COLOR_BLUE "$: %d" ANSI_COLOR_RESET, length);
+    }else{
+        printf(
+            "\r" ANSI_COLOR_BLUE 
+            "Terminal size: "
+            "y:%d rows | "
+            "x:%d columns | "
+            "headPositionX: %d | "
+            "headPositionY: %d | "
+            "refresh rate: %d | "
+            "foodX: %d | "
+            "foodY: %d | "
+            "length: %d "
+            "    "//empty space is need 
+            ANSI_COLOR_RESET, rows, columns, headPositionX, headPositionY, millis, foodX, foodY, length);
+    }
 }
 
 void printGameOverScreen()
@@ -307,58 +310,84 @@ void printGameOverScreen()
     printf("\e[?25h"); // Reenable cursor
 }
 
+char getRandomFullLatinChar(){
+    char randomletter = '!' + (random() % (126-32));//full latin alfabet is going from 32(!) to 126
+    return randomletter;
+}
+
 void printSnakeBody(int bodyIndex)
 {
-    // We will add a little bit of styling to the snake, based on body's element and cycle
-    if (bodyIndex > length - 10)
+    if(matrixMode)
     {
-        // tail //◘ •
-        if(bodyIndex == length-2)
-            printf(ANSI_COLOR_GREEN "◘" ANSI_COLOR_RESET);
-        else if (bodyIndex % 2)
-            printf(ANSI_COLOR_GREEN "•" ANSI_COLOR_RESET);
-        else
-            printf(ANSI_COLOR_CYAN "•" ANSI_COLOR_RESET);
+        char c = getRandomFullLatinChar();
+        printf(ANSI_COLOR_GREEN );
+        printf("%c", c);  
+        printf(ANSI_COLOR_RESET);
     }
     else
-    {
-        //This means alternating + and ♦ elements with flashing colors
-        if (bodyIndex % 2)
+    {    
+        // We will add a little bit of styling to the snake, based on body's element and cycle
+        if (bodyIndex > length - 10)
         {
-            if (cycle % 2)
-            {
-                printf(ANSI_COLOR_GREEN "+" ANSI_COLOR_RESET);
-            }
+            // tail //◘ •
+            if(bodyIndex == length-2)
+                printf(ANSI_COLOR_GREEN "◘" ANSI_COLOR_RESET);
+            else if (bodyIndex % 2)
+                printf(ANSI_COLOR_GREEN "•" ANSI_COLOR_RESET);
             else
-            {
-                printf(ANSI_COLOR_CYAN "+" ANSI_COLOR_RESET);
-            }
+                printf(ANSI_COLOR_CYAN "•" ANSI_COLOR_RESET);
         }
         else
         {
-            if (cycle % 2)
+            //This means alternating + and ♦ elements with flashing colors
+            if (bodyIndex % 2)
             {
-                printf(ANSI_COLOR_CYAN "♦" ANSI_COLOR_RESET);
+                if (cycle % 2)
+                {
+                    printf(ANSI_COLOR_GREEN "+" ANSI_COLOR_RESET);
+                }
+                else
+                {
+                    printf(ANSI_COLOR_CYAN "+" ANSI_COLOR_RESET);
+                }
             }
             else
             {
-                printf(ANSI_COLOR_GREEN "♦" ANSI_COLOR_RESET);
+                if (cycle % 2)
+                {
+                    printf(ANSI_COLOR_CYAN "♦" ANSI_COLOR_RESET);
+                }
+                else
+                {
+                    printf(ANSI_COLOR_GREEN "♦" ANSI_COLOR_RESET);
+                }
             }
-        }
-    }   
+        }   
+    }
 }
 
 void printSnakeHead()
 {
-    if ( cycle % 2 )
-        printf(ANSI_COLOR_GREEN "X" ANSI_COLOR_RESET);
+    if( matrixMode )
+    {
+        char c = getRandomFullLatinChar();
+        printf( ANSI_COLOR_WHITE );
+        printf( "%c", c );  
+        printf( ANSI_COLOR_RESET );
+    }
     else
-        printf( ANSI_COLOR_CYAN "@" ANSI_COLOR_RESET );
+    {
+        if ( cycle % 2 )
+            printf( ANSI_COLOR_GREEN "X" ANSI_COLOR_RESET );
+        else
+            printf( ANSI_COLOR_CYAN "@" ANSI_COLOR_RESET );
+    }
+    
 }
 
 void printFood()
 {
-    // Food will also be flashing dollar sign
+    // Food will be flashing dollar sign (everybody likes dollar sign)
     const char *ANSI_COLOR_FOOD;
     if ( cycle % 2 )
         ANSI_COLOR_FOOD = ANSI_COLOR_YELLOW;
@@ -370,10 +399,18 @@ void printFood()
 
 void printWall()
 {
-    /*if ( cycle % 2 )
-        printf(ANSI_COLOR_GREEN "X" ANSI_COLOR_RESET);
-    else*/
+    if( matrixMode )
+    {
+        char c = getRandomFullLatinChar();
+        printf( ANSI_COLOR_GREEN );
+        printf( "%c", c );  
+        printf( ANSI_COLOR_RESET );
+    } 
+    else 
+    {
         printf( "▓" );
+    }
+    
 }
 
 void printEmptyContent( int x, int y, int width, int depth )
@@ -409,7 +446,7 @@ void printContent()
         printf("\n"); // Start at new line
         for (int x = 0; x <= width; x++)
         {
-            if (y > 0)
+            if (y > 0)  //Not sure why this condition?
             {
                 // 1. Check if the screen cell contains head,food or body
                 hasHead = checkHead( x, y );              
@@ -429,7 +466,7 @@ void printContent()
                 {
                     printWall();
                 }
-                else if ( bodyIndex>=0 )
+                else if ( bodyIndex >= 0 )
                 {
                     printSnakeBody( bodyIndex );
                 }
@@ -449,44 +486,45 @@ void gameOver()
     disableNonCanonicalMode();
     free(yBody);
     free(xBody);
-    printf("\nGame Over\n");
-    printf("Food eaten: %d \n", foodEaten);
-    printf("Length achieved: %d \n", length);
-    printf("Cycles played: %lld \n", cycle);
-    printf("\e[?25h"); // Reenable cursor
+    printGameOverScreen();    
     exit(0);
+}
+
+void autoPlay()
+{
+    int z = (rand() % (4) + 0);
+
+    if (z == 0)
+    {
+        headPositionX--;
+        if (headPositionX < 1)
+            headPositionX = columns - 2;
+    }
+    else if (z == 1)
+    {
+        headPositionX++;
+        if (headPositionX > columns - 1)
+            headPositionX = 1;
+    }
+    else if (z == 2)
+    {
+        headPositionY--;
+        if (headPositionY < 1)
+            headPositionY = rows - 2;
+    }
+    else// if (z == 3)
+    {
+        headPositionY++;
+        if (headPositionY > rows - 1)
+            headPositionY = 1;
+    }
 }
 
 void updateHeadPosition()
 {
     if (autoMode && (cycle%100))
     {
-        int z = (rand() % (4) + 0);
-        if (z == 0)
-        {
-            headPositionX--;
-            if (headPositionX < 1)
-                headPositionX = columns - 2;
-        }
-        else if (z == 1)
-        {
-            headPositionX++;
-            if (headPositionX > columns - 1)
-                headPositionX = 1;
-        }
-        else if (z == 2)
-        {
-            headPositionY--;
-            if (headPositionY < 1)
-                headPositionY = rows - 2;
-        }
-        else// if (z == 3)
-        {
-            headPositionY++;
-            if (headPositionY > rows - 1)
-                headPositionY = 1;
-        }
-
+        autoPlay();
     }
     else
     {
@@ -516,20 +554,6 @@ void updateHeadPosition()
         }
     }
 }
-
-/* //TODO 
-void resizeBodyIfNeeded() {
-    if (length >= ?) {
-        n *= 2; // Double the size
-        yBody = realloc(yBody, n * sizeof(int));
-        xBody = realloc(xBody, n * sizeof(int));
-        
-        if (yBody == NULL || xBody == NULL) {
-            fprintf(stderr, "Memory allocation failed\n");
-            exit(1);
-        }
-    }
-}*/
 
 void updateBodyPosition()
 {
@@ -595,6 +619,7 @@ void processArguments(int argc, char **argv)
     char gm[] = "god-mode";
     char le[] = "lay-eggs";
     char at[] = "auto";
+    char mm[] = "matrix-mode";
     
     for (int i = 1; i < argc; ++i)
     {
@@ -619,6 +644,13 @@ void processArguments(int argc, char **argv)
         {
             autoMode=true;
             printf("Auto mode activated.\n");
+        }
+
+        result = strcmp(mm, argv[i]);
+        if (result == 0) 
+        {
+            matrixMode=true;
+            printf("Wake up Neo, Matrix mode is activated...\n");
         }
 
        usleep(1000 * 1000);
