@@ -389,10 +389,19 @@ void printFood()
 {
     // Food will be flashing dollar sign (everybody likes dollar sign)
     const char *ANSI_COLOR_FOOD;
-    if ( cycle % 2 )
-        ANSI_COLOR_FOOD = ANSI_COLOR_YELLOW;
+    
+    if( matrixMode )
+    {
+        ANSI_COLOR_FOOD = ANSI_COLOR_RED;
+    }
     else
-        ANSI_COLOR_FOOD = ANSI_COLOR_BLUE;
+    {
+        if( cycle % 2 )
+            ANSI_COLOR_FOOD = ANSI_COLOR_YELLOW;
+        else
+            ANSI_COLOR_FOOD = ANSI_COLOR_BLUE;
+    }
+    
     
     printf( "%s$%s", ANSI_COLOR_FOOD, ANSI_COLOR_RESET );
 }
