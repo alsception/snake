@@ -6,7 +6,9 @@ Learn more about the game concept: [Snake (video game genre)](https://en.wikiped
 **Gameplay:**  
 - Eat food to grow the snake.
 - Change direction using arrow keys.
-- Avoid crashing into the snake's body.  
+- Avoid crashing into the snake's body.
+- To pause press 'P'
+- To quit press 'Q'
 
 **Files:**  
 - `snake` — Executable file.  
