@@ -284,13 +284,14 @@ void printHeaderLine()
 {   
     if(columns<155)
     {
-        //Make it responsive :)
-        
+        //Make it responsive :)        
         if(matrixMode)
-        printf( "\r" ANSI_COLOR_GREEN "$: " ANSI_COLOR_HIGREEN "%d" ANSI_COLOR_RESET, length);
+            printf( "\r" ANSI_COLOR_GREEN "$: " ANSI_COLOR_HIGREEN "%d" ANSI_COLOR_RESET, length);
         else
-        printf( "\r" ANSI_COLOR_YELLOW "$: " ANSI_COLOR_BLUE "%d" ANSI_COLOR_RESET, length);
-    }else{    
+            printf( "\r" ANSI_COLOR_YELLOW "$: " ANSI_COLOR_BLUE "%d" ANSI_COLOR_RESET, length);
+    }
+    else
+    {    
         const char* color = matrixMode ? ANSI_COLOR_GREEN : ANSI_COLOR_BLUE;
         printf(
             "\r%s"
@@ -306,8 +307,7 @@ void printHeaderLine()
             "    " // Empty space is needed
             ANSI_COLOR_RESET, 
             color, rows, columns, headPositionX, headPositionY, millis, foodX, foodY, ANSI_COLOR_HIGREEN, length);
-
-            }
+    }
 }
 
 void printGameOverScreen()
