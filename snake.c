@@ -590,13 +590,6 @@ void updateSnakeData()
 
 void render()
 {
-    /** Looks like this fix causes too much flashing when tried on other machine (ubuntu)
-    // (temporary) Fix:
-    // Every n cycles clear the screen.
-    if( cycle % cf )
-        system("clear");
-    */
-
     resetCursorPosition();    
     printHeaderLine();    
     printContent();
