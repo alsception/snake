@@ -17,6 +17,8 @@
 #define ANSI_COLOR_CYAN "\x1b[36m"
 #define ANSI_COLOR_WHITE "\x1b[37m"
 #define ANSI_COLOR_RESET "\x1b[0m"
+#define ANSI_COLOR_HIGREEN "\e[1;92m"
+
 
 // Variables
 long long int cycle = 0;
@@ -310,16 +312,36 @@ void printGameOverScreen()
     printf("\e[?25h"); // Reenable cursor
 }
 
+char getRandomLatinChar(){
+    char randomletter = 'A' + (random() % 26);//56
+    return randomletter;
+}
+
 char getRandomFullLatinChar(){
     char randomletter = '!' + (random() % (126-32));//full latin alfabet is going from 32(!) to 126
     return randomletter;
+}
+
+char getRandomLatinCharOrNumber() 
+{
+    int randomIndex = random() % 36; // 26 letters + 10 digits
+    if (randomIndex < 26) 
+    {
+        return 'A' + randomIndex; // Latin letters
+    } else {
+        return '0' + (randomIndex - 26); // Numbers
+    }
+}
+
+char getRandomChar(){
+    return getRandomLatinCharOrNumber();
 }
 
 void printSnakeBody(int bodyIndex)
 {
     if(matrixMode)
     {
-        char c = getRandomFullLatinChar();
+        char c = getRandomChar();
         printf(ANSI_COLOR_GREEN );
         printf("%c", c);  
         printf(ANSI_COLOR_RESET);
@@ -370,8 +392,8 @@ void printSnakeHead()
 {
     if( matrixMode )
     {
-        char c = getRandomFullLatinChar();
-        printf( ANSI_COLOR_WHITE );
+        char c = getRandomChar();
+        printf( ANSI_COLOR_HIGREEN );
         printf( "%c", c );  
         printf( ANSI_COLOR_RESET );
     }
@@ -409,12 +431,16 @@ void printFood()
 void printEmptyContent(int x, int y, int width, int depth)
 {
     if (matrixMode)
-    {
-        char c = getRandomFullLatinChar();
-        if (y == 1 || y == depth || x == 0 || x == width)            
-            printf("%c", c);
+    {        
+        if (y == 1 || y == depth || x == 0 || x == width)
+        {
+            char c = getRandomChar();
+            printf(ANSI_COLOR_GREEN"%c"ANSI_COLOR_RESET, c);
+        }                  
         else
+        {
             printf(" ");
+        }            
     }
     else
     {
