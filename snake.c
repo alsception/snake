@@ -283,7 +283,7 @@ void printHeaderLine()
     if(columns<155)
     {
         //Make it responsive :)
-        printf( "\r" ANSI_COLOR_BLUE "$: %d" ANSI_COLOR_RESET, length);
+        printf( "\r" ANSI_COLOR_YELLOW "$: " ANSI_COLOR_BLUE "%d" ANSI_COLOR_RESET, length);
     }else{
         printf(
             "\r" ANSI_COLOR_BLUE 
