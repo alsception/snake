@@ -285,10 +285,15 @@ void printHeaderLine()
     if(columns<155)
     {
         //Make it responsive :)
+        
+        if(matrixMode)
+        printf( "\r" ANSI_COLOR_GREEN "$: " ANSI_COLOR_HIGREEN "%d" ANSI_COLOR_RESET, length);
+        else
         printf( "\r" ANSI_COLOR_YELLOW "$: " ANSI_COLOR_BLUE "%d" ANSI_COLOR_RESET, length);
-    }else{
+    }else{    
+        const char* color = matrixMode ? ANSI_COLOR_GREEN : ANSI_COLOR_BLUE;
         printf(
-            "\r" ANSI_COLOR_BLUE 
+            "\r%s"
             "Terminal size: "
             "y:%d rows | "
             "x:%d columns | "
@@ -297,10 +302,12 @@ void printHeaderLine()
             "refresh rate: %d | "
             "foodX: %d | "
             "foodY: %d | "
-            "length: %d "
-            "    "//empty space is need 
-            ANSI_COLOR_RESET, rows, columns, headPositionX, headPositionY, millis, foodX, foodY, length);
-    }
+            "length: %s%d "
+            "    " // Empty space is needed
+            ANSI_COLOR_RESET, 
+            color, rows, columns, headPositionX, headPositionY, millis, foodX, foodY, ANSI_COLOR_HIGREEN, length);
+
+            }
 }
 
 void printGameOverScreen()
