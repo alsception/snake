@@ -667,7 +667,8 @@ void processArguments(int argc, char **argv)
         result = strcmp(at, argv[i]);
         if (result == 0) 
         {
-            autoMode=true;
+            autoMode = true;
+            godMode = true; //need to have godmode also otherwise it crashes
             printf("Auto mode activated.\n");
         }
 
