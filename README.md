@@ -25,10 +25,15 @@ Learn more about the game concept: [Snake (video game genre)](https://en.wikiped
    ```  
 
 **How to Build:**  
-Compile the source code using GCC:  
+Compile the source code using GCC [old]:  
 ```bash
 gcc snake.c -o snake
 ```  
+Using Makefile:  
+```bash
+make
+``` 
+To clean: make clean 
 
 **Game Modes & Command-Line Arguments:**  
 - **God-mode**: Pass through the snake’s body without dying.  

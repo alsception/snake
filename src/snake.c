@@ -1,3 +1,4 @@
+//Standard libraries
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -7,6 +8,10 @@
 #include <fcntl.h>
 #include <stdbool.h> // Include this header to use bool, true, and false
 #include <string.h>
+
+//Our library
+#include "lib/utils.h"
+#include "lib/rendering.h"
 
 // Colors
 #define ANSI_COLOR_RED "\x1b[31m"
@@ -18,7 +23,6 @@
 #define ANSI_COLOR_WHITE "\x1b[37m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 #define ANSI_COLOR_HIGREEN "\e[1;92m"
-
 
 // Variables
 long long int cycle = 0;
@@ -55,26 +59,6 @@ bool cursorVisible = false;
 bool generateFoodRandomly = true;
 bool pausa = false;
 
-
-// Function to enable non-canonical mode
-// https://stackoverflow.com/questions/358342/canonical-vs-non-canonical-terminal-input
-void enableNonCanonicalMode()
-{
-    struct termios newSettings;
-    tcgetattr(STDIN_FILENO, &newSettings);
-    newSettings.c_lflag &= ~(ICANON | ECHO); // Disable canonical mode and echo
-    tcsetattr(STDIN_FILENO, TCSANOW, &newSettings);
-}
-
-// Function to restore terminal to original settings
-void disableNonCanonicalMode()
-{
-    struct termios originalSettings;
-    tcgetattr(STDIN_FILENO, &originalSettings);
-    originalSettings.c_lflag |= (ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &originalSettings);
-}
-
 void cleanUp()
 {
     disableNonCanonicalMode();
@@ -110,29 +94,44 @@ int handleKeypress()
     int ch = readKeyPress();
     if (ch != EOF)
     {
-        if ((ch == 'a' || ch == 'A') && (direction != 'R' || godMode))
-            direction = 'L';
+        switch (ch) 
+        {
+            case 'a': case 'A':
+                if (direction != 'R' || godMode)
+                    direction = 'L';
+                break;
 
-        else if ((ch == 'd' || ch == 'D') && (direction != 'L' || godMode))
-            direction = 'R';
+            case 'd': case 'D':
+                if (direction != 'L' || godMode)
+                    direction = 'R';
+                break;
 
-        else if ((ch == 'w' || ch == 'W') && (direction != 'D' || godMode))
-            direction = 'U';
+            case 'w': case 'W':
+                if (direction != 'D' || godMode)
+                    direction = 'U';
+                break;
 
-        else if ((ch == 's' || ch == 'S') && (direction != 'U' || godMode))
-            direction = 'D';
+            case 's': case 'S':
+                if (direction != 'U' || godMode)
+                    direction = 'D';
+                break;
 
-        else if (ch == 'p' || ch == 'P')
-            pausa = !pausa;
+            case 'p': case 'P':
+                pausa = !pausa;
+                break;
 
-        else if (ch == 'q' || ch == 'Q')
-            return 0; // Quit the game        
+            case 'q': case 'Q':
+                return 0; // Quit the game
+
+            default:
+                break;
+        }
 
     }
     return 1;
 }
 
-void getWindowSize()
+void setWindowSize()
 {
     struct winsize w;
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1)
@@ -142,7 +141,6 @@ void getWindowSize()
     }
     rows = w.ws_row;
     columns = w.ws_col;
-    int maxLength = rows * columns;
 }
 
 void generateFood()
@@ -171,7 +169,7 @@ void initialize()
     
     // Initial size print and frame
     // This is important to get rows and columns    
-    getWindowSize();
+    setWindowSize();
 
     if(columns < 7 || rows < 5 )
     {
@@ -191,7 +189,7 @@ void initialize()
 
 void resetCursorPosition()
 {
-    getWindowSize();//update window size    
+    setWindowSize();//update window size    
 
     printf("\r"); //go to start of the line
 
@@ -199,38 +197,6 @@ void resetCursorPosition()
     {
         printf("\033[A");
     } 
-}
-
-// Return true if food is present at given x,y position
-bool checkFood(int x, int y)
-{
-    if (x == foodX && y == foodY)
-        return true;
-    else
-        return false;
-}
-
-// Return true if snake head is present at given x,y position
-bool checkHead(int x, int y)
-{
-    if (x == headPositionX && y == headPositionY)
-        return true;
-    else
-        return false;
-}
-
-// Return index of snake's body element if present at given x,y position
-// Otherwise return -1
-int checkBody(int x, int y)
-{
-    for (int i = 0; i < length; i++)
-    {
-        if (x == xBody[i] && y == yBody[i])
-        {
-            return i;
-        }
-    }
-    return -1;
 }
 
 // Return true if heads position is collided with one of the body elements
@@ -268,7 +234,7 @@ void eat()
         {
             generateFood();
         } 
-        while (checkBody(foodX, foodY) > -1);
+        while (checkBody(foodX, foodY, xBody, yBody, length) > -1);
     }
     else
     {
@@ -319,199 +285,6 @@ void printGameOverScreen()
     printf("\e[?25h"); // Reenable cursor
 }
 
-char getRandomLatinChar(){
-    char randomletter = 'A' + (random() % 26);//56
-    return randomletter;
-}
-
-char getRandomFullLatinChar(){
-    char randomletter = '!' + (random() % (126-32));//full latin alfabet is going from 32(!) to 126
-    return randomletter;
-}
-
-char getRandomLatinCharOrNumber() 
-{
-    int randomIndex = random() % 36; // 26 letters + 10 digits
-    if (randomIndex < 26) 
-    {
-        return 'A' + randomIndex; // Latin letters
-    } else {
-        return '0' + (randomIndex - 26); // Numbers
-    }
-}
-
-char getRandomChar(){
-    return getRandomLatinCharOrNumber();
-}
-
-void printSnakeBody(int bodyIndex)
-{
-    if(matrixMode)
-    {
-        char c = getRandomChar();
-        printf(ANSI_COLOR_GREEN );
-        printf("%c", c);  
-        printf(ANSI_COLOR_RESET);
-    }
-    else
-    {    
-        // We will add a little bit of styling to the snake, based on body's element and cycle
-        if (bodyIndex > length - 10)
-        {
-            // tail //◘ •
-            if(bodyIndex == length-2)
-                printf(ANSI_COLOR_GREEN "◘" ANSI_COLOR_RESET);
-            else if (bodyIndex % 2)
-                printf(ANSI_COLOR_GREEN "•" ANSI_COLOR_RESET);
-            else
-                printf(ANSI_COLOR_CYAN "•" ANSI_COLOR_RESET);
-        }
-        else
-        {
-            //This means alternating + and ♦ elements with flashing colors
-            if (bodyIndex % 2)
-            {
-                if (cycle % 2)
-                {
-                    printf(ANSI_COLOR_GREEN "+" ANSI_COLOR_RESET);
-                }
-                else
-                {
-                    printf(ANSI_COLOR_CYAN "+" ANSI_COLOR_RESET);
-                }
-            }
-            else
-            {
-                if (cycle % 2)
-                {
-                    printf(ANSI_COLOR_CYAN "♦" ANSI_COLOR_RESET);
-                }
-                else
-                {
-                    printf(ANSI_COLOR_GREEN "♦" ANSI_COLOR_RESET);
-                }
-            }
-        }   
-    }
-}
-
-void printSnakeHead()
-{
-    if( matrixMode )
-    {
-        char c = getRandomChar();
-        printf( ANSI_COLOR_HIGREEN );
-        printf( "%c", c );  
-        printf( ANSI_COLOR_RESET );
-    }
-    else
-    {
-        if ( cycle % 2 )
-            printf( ANSI_COLOR_GREEN "X" ANSI_COLOR_RESET );
-        else
-            printf( ANSI_COLOR_CYAN "@" ANSI_COLOR_RESET );
-    }
-    
-}
-
-void printFood()
-{
-    // Food will be flashing dollar sign (everybody likes dollar sign)
-    const char *ANSI_COLOR_FOOD;
-    
-    if( matrixMode )
-    {
-        ANSI_COLOR_FOOD = ANSI_COLOR_RED;
-    }
-    else
-    {
-        if( cycle % 2 )
-            ANSI_COLOR_FOOD = ANSI_COLOR_YELLOW;
-        else
-            ANSI_COLOR_FOOD = ANSI_COLOR_BLUE;
-    }
-    
-    
-    printf( "%s$%s", ANSI_COLOR_FOOD, ANSI_COLOR_RESET );
-}
-
-void printEmptyContent(int x, int y, int width, int depth)
-{
-    if (matrixMode)
-    {        
-        if (y == 1 || y == depth || x == 0 || x == width)
-        {
-            char c = getRandomChar();
-            printf(ANSI_COLOR_GREEN"%c"ANSI_COLOR_RESET, c);
-        }                  
-        else
-        {
-            printf(" ");
-        }            
-    }
-    else
-    {
-        if (y == 1 || y == depth)
-        {
-            if (x == 0 || x == width)
-                printf("+");
-            else
-                printf("=");
-        }
-        else
-        {
-            if (x == 0 || x == width)
-                printf("|");
-            else
-                printf(" ");
-        }
-    }
-}
-
-void printContent()
-{
-    int depth = rows - yOffset;
-    int width = columns - 2;
-    int bodyIndex = -1;
-    bool hasHead = false;
-    bool hasFood = false;
-
-    //Screen printing is done line by line starting from top
-    for (int y = 0; y <= depth; y++)
-    {     
-        printf("\n"); // Start at new line
-        for (int x = 0; x <= width; x++)
-        {
-            if (y > 0)  //Not sure why this condition?
-            {
-                // 1. Check if the screen cell contains head,food or body
-                hasHead = checkHead( x, y );              
-                hasFood = checkFood( x, y );
-                bodyIndex = checkBody( x, y );    
-
-                // 2. Print appropriate element
-                if ( hasHead )
-                {                    
-                    printSnakeHead( bodyIndex );
-                }                
-                else if ( hasFood )
-                {
-                    printFood();
-                }                
-                else if ( bodyIndex >= 0 )
-                {
-                    printSnakeBody( bodyIndex );
-                }
-                else
-                {
-                    printEmptyContent( x, y, width, depth );
-                }
-            }
-        }
-        
-    }    
-    fflush(stdout);
-}
 
 void gameOver()
 {
@@ -526,29 +299,34 @@ void autoPlay()
 {
     int z = (rand() % (4) + 0);
 
-    if (z == 0)
+    switch (z)
     {
+    case 0:
         headPositionX--;
         if (headPositionX < 1)
             headPositionX = columns - 2;
-    }
-    else if (z == 1)
-    {
+        break;
+
+    case 1:
         headPositionX++;
         if (headPositionX > columns - 1)
             headPositionX = 1;
-    }
-    else if (z == 2)
-    {
+        break;
+
+    case 2:
         headPositionY--;
         if (headPositionY < 1)
             headPositionY = rows - 2;
-    }
-    else// if (z == 3)
-    {
+        break;
+
+    case 3:
         headPositionY++;
         if (headPositionY > rows - 1)
             headPositionY = 1;
+        break;
+    
+    default:
+        break;
     }
 }
 
@@ -560,30 +338,35 @@ void updateHeadPosition()
     }
     else
     {
-        if (direction == 'L')
-        {
-            headPositionX--;
-            if (headPositionX < 1)
-                headPositionX = columns - 3;
+        switch (direction) {
+            case 'L':
+                headPositionX--;
+                if (headPositionX < 1)
+                    headPositionX = columns - 3;
+                break;
+
+            case 'R':
+                headPositionX++;
+                if (headPositionX > columns - 3)
+                    headPositionX = 1;
+                break;
+
+            case 'U':
+                headPositionY--;
+                if (headPositionY < yOffset)
+                    headPositionY = rows - 3;
+                break;
+
+            case 'D':
+                headPositionY++;
+                if (headPositionY > rows - yOffset - 1)
+                    headPositionY = yOffset;
+                break;
+
+            default:
+                break;
         }
-        else if (direction == 'R')
-        {
-            headPositionX++;
-            if (headPositionX > columns - 3)
-                headPositionX = 1;
-        }
-        else if (direction == 'U')
-        {
-            headPositionY--;
-            if (headPositionY < yOffset)
-                headPositionY = rows - 3;
-        }
-        else if (direction == 'D')
-        {
-            headPositionY++;
-            if (headPositionY > rows - yOffset-1)
-                headPositionY = yOffset;
-        }
+
     }
 }
 
@@ -625,16 +408,16 @@ void render()
 {
     resetCursorPosition();    
     printHeaderLine();    
-    printContent();
+    printContent(rows, columns, yOffset, length, cycle, headPositionX, headPositionY, foodX, foodY, xBody, yBody, matrixMode);
     
     if(!cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
 }
 
 void refreshScreen()
 {
-    if(!pausa){
+    if(!pausa)
+    {
         updateSnakeData();
-            //should we render also?
     }   
     render();  
 }

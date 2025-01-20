@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "string.h": "c",
+        "stdio.h": "c",
+        "utils.h": "c",
+        "termios.h": "c"
+    }
+}
