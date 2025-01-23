@@ -3,6 +3,11 @@
         "string.h": "c",
         "stdio.h": "c",
         "utils.h": "c",
-        "termios.h": "c"
+        "termios.h": "c",
+        "game_mode.h": "c",
+        "stdbool.h": "c",
+        "colors.h": "c",
+        "signal.h": "c",
+        "game_direction.h": "c"
     }
 }

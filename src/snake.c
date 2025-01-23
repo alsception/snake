@@ -6,58 +6,40 @@
 #include <signal.h>
 #include <termios.h>
 #include <fcntl.h>
-#include <stdbool.h> // Include this header to use bool, true, and false
+#include <stdbool.h> // Include this header to use boolean, true, and false
 #include <string.h>
 
-//Our library
+//Our libraries
+#include "lib/types/game_mode.h"
+#include "lib/types/game_direction.h"
+#include "lib/types/game_settings.h"
+#include "lib/types/game_mode.h"
+#include "lib/types/colors.h"
 #include "lib/utils.h"
 #include "lib/rendering.h"
 
-// Colors
-#define ANSI_COLOR_RED "\x1b[31m"
-#define ANSI_COLOR_GREEN "\x1b[32m"
-#define ANSI_COLOR_YELLOW "\x1b[33m"
-#define ANSI_COLOR_BLUE "\x1b[34m"
-#define ANSI_COLOR_MAGENTA "\x1b[35m"
-#define ANSI_COLOR_CYAN "\x1b[36m"
-#define ANSI_COLOR_WHITE "\x1b[37m"
-#define ANSI_COLOR_RESET "\x1b[0m"
-#define ANSI_COLOR_HIGREEN "\e[1;92m"
 
 // Variables
 long long int cycle = 0;
 int rows = 0;
-int rowsPrevious = 0;
 int columns = 0;
-int columnsPrevious = 0;
 int yOffset = 2;
 int xOffset = 0;
 int headPositionX = 21;
 int headPositionY = 22;
 
-int millis = 50;//50;
-int millisFast = 25;
-int millisMedium = 75;
-int millisSlow = 100;
-
 int *yBody;
 int *xBody;
-int direction = 'R'; // R for right, L for left, U for up, D for down
+
 int foodX = 0;
 int foodY = 0;
 int length = 14;//15 tested max with 1115
-int bodyIncrement = 15;//35
-int foodEaten = 0;
-int cf = 1000; //Number of cycles to completely redraw the screen (Constant redrawing causes flashing, but neccessary)
-int wallSize = 0;
-int maxLength = 1000;
 
-bool godMode = false;
-bool autoMode = false;
-bool matrixMode = false;
-bool cursorVisible = false;
-bool generateFoodRandomly = true;
+int foodEaten = 0;
 bool pausa = false;
+
+T_Game_Direction direction = RIGHT; 
+T_Game_Mode mode = NORMAL;
 
 void cleanUp()
 {
@@ -96,31 +78,37 @@ int handleKeypress()
     {
         switch (ch) 
         {
-            case 'a': case 'A':
-                if (direction != 'R' || godMode)
+            case 'a': 
+            case 'A':
+                if (direction != 'R' || is_mode_active(mode, GOD))
                     direction = 'L';
                 break;
 
-            case 'd': case 'D':
-                if (direction != 'L' || godMode)
+            case 'd': 
+            case 'D':
+                if (direction != 'L' || is_mode_active(mode, GOD))
                     direction = 'R';
                 break;
 
-            case 'w': case 'W':
-                if (direction != 'D' || godMode)
+            case 'w': 
+            case 'W':
+                if (direction != 'D' || is_mode_active(mode, GOD))
                     direction = 'U';
                 break;
 
-            case 's': case 'S':
-                if (direction != 'U' || godMode)
+            case 's': 
+            case 'S':
+                if (direction != 'U' || is_mode_active(mode, GOD))
                     direction = 'D';
                 break;
 
-            case 'p': case 'P':
+            case 'p': 
+            case 'P':
                 pausa = !pausa;
                 break;
 
-            case 'q': case 'Q':
+            case 'q': 
+            case 'Q':
                 return 0; // Quit the game
 
             default:
@@ -152,19 +140,33 @@ void generateFood()
 
 void initBody()
 {  
-    yBody = (int *)malloc(maxLength * sizeof(int));
-    xBody = (int *)malloc(maxLength * sizeof(int));
+    yBody = (int *)malloc(GAME_SETTINGS.maxLength * sizeof(int));
+    xBody = (int *)malloc(GAME_SETTINGS.maxLength * sizeof(int));
     
     // Initialize array
-    for (int i = 0; i < maxLength; i++)
+    for (int i = 0; i < GAME_SETTINGS.maxLength; i++)
     {
         yBody[i] = 0;
         xBody[i] = 0;
     }    
 }
 
+void initSetting()
+{
+   /*  T_Game_Settings settings = 
+    {
+        .millis = 50,
+        .bodyIncrement = 15,
+        .maxLength = 1000,
+        .cursorVisible = false
+    }; */
+}
+
 void initialize()
 {
+    
+    initSetting();
+
     system("clear");
     
     // Initial size print and frame
@@ -228,37 +230,39 @@ void layEgg()
 
 void eat()
 {
-    if (generateFoodRandomly)
+    if( is_mode_active( mode, LAYING_EGGS ))
     {
+        layEgg();
+    }
+    else
+    {        
         do
         {
             generateFood();
         } 
-        while (checkBody(foodX, foodY, xBody, yBody, length) > -1);
-    }
-    else
-    {
-        layEgg();
+        while ( checkBody( foodX, foodY, xBody, yBody, length) > -1);
     }
 
-    length += bodyIncrement;
+    length += GAME_SETTINGS.bodyIncrement;
     foodEaten++;
 }
 
+//TODO: MOVE TO RENDERING
 // Upper line with informations
 void printHeaderLine()
-{   
+{       
     if(columns<155)
     {
         //Make it responsive :)        
-        if(matrixMode)
+        if(is_mode_active( mode, MATRIX ))
             printf( "\r" ANSI_COLOR_GREEN "$: " ANSI_COLOR_HIGREEN "%d" ANSI_COLOR_RESET, length);
         else
             printf( "\r" ANSI_COLOR_YELLOW "$: " ANSI_COLOR_BLUE "%d" ANSI_COLOR_RESET, length);
     }
     else
     {    
-        const char* color = matrixMode ? ANSI_COLOR_GREEN : ANSI_COLOR_BLUE;
+        //IF HEAD X OR Y EQUALS TO FOODS -> THEN COLOR IN GREEN
+        const char* color = is_mode_active( mode, MATRIX ) ? ANSI_COLOR_GREEN : ANSI_COLOR_BLUE;
         printf(
             "\r%s"
             "Terminal size: "
@@ -272,10 +276,11 @@ void printHeaderLine()
             "length: %s%d "
             "    " // Empty space is needed
             ANSI_COLOR_RESET, 
-            color, rows, columns, headPositionX, headPositionY, millis, foodX, foodY, ANSI_COLOR_HIGREEN, length);
+            color, rows, columns, headPositionX, headPositionY, GAME_SETTINGS.millis, foodX, foodY, ANSI_COLOR_HIGREEN, length);
     }
 }
 
+//TODO: MOVE TO RENDERING
 void printGameOverScreen()
 {
     printf("\nGame Over\n");
@@ -332,12 +337,13 @@ void autoPlay()
 
 void updateHeadPosition()
 {
-    if (autoMode && (cycle%100))
+    if ( is_mode_active( mode, AUTO ) && ( cycle % 100 ))
     {
         autoPlay();
     }
     else
     {
+        //TODO: EXTRACT FUNCITON
         switch (direction) {
             case 'L':
                 headPositionX--;
@@ -366,7 +372,6 @@ void updateHeadPosition()
             default:
                 break;
         }
-
     }
 }
 
@@ -392,12 +397,12 @@ void updateSnakeData()
     // Update head position based on current direction
     updateHeadPosition();
 
-    if(!godMode && detectBodyCollision())
+    if( !is_mode_active( mode, GOD ) && detectBodyCollision() )
     {
         gameOver();        
     }    
 
-    if (detectEating())
+    if ( detectEating() )
     {
         eat();
         updateBodyPosition();        
@@ -408,9 +413,10 @@ void render()
 {
     resetCursorPosition();    
     printHeaderLine();    
-    printContent(rows, columns, yOffset, length, cycle, headPositionX, headPositionY, foodX, foodY, xBody, yBody, matrixMode);
     
-    if(!cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
+    printContent(rows, columns, yOffset, length, cycle, headPositionX, headPositionY, foodX, foodY, xBody, yBody, is_mode_active( mode, MATRIX )); //New problem: Too many arguments?
+    
+    if(!GAME_SETTINGS.cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
 }
 
 void refreshScreen()
@@ -422,54 +428,11 @@ void refreshScreen()
     render();  
 }
 
-void processArguments(int argc, char **argv)
-{
-    char gm[] = "god-mode";
-    char le[] = "lay-eggs";
-    char at[] = "auto";
-    char mm[] = "matrix-mode";
-    
-    for (int i = 1; i < argc; ++i)
-    {
-        int result;
-        
-        result = strcmp(gm, argv[i]);
-        if (result == 0) 
-        {
-            godMode = true;
-            printf("God mode activated\n");
-        } 
-    
-        result = strcmp(le, argv[i]);
-        if (result == 0) 
-        {
-            generateFoodRandomly=false;
-            printf("Laying eggs mode activated.\n");
-        }
-
-        result = strcmp(at, argv[i]);
-        if (result == 0) 
-        {
-            autoMode = true;
-            godMode = true; //need to have godmode also otherwise it crashes
-            printf("Auto mode activated.\n");
-        }
-
-        result = strcmp(mm, argv[i]);
-        if (result == 0) 
-        {
-            matrixMode=true;
-            printf("Wake up Neo, Matrix mode is activated...\n");
-        }
-
-       usleep(1000 * 1000);
-    }
-}
 
 int main(int argc, char **argv)
 {
     if(argc > 0)
-        processArguments(argc,argv);    
+        mode = processArguments(argc,argv,mode);    
 
     initialize();
         
@@ -479,7 +442,7 @@ int main(int argc, char **argv)
         if(!handleKeypress())
             break;
         refreshScreen();        
-        usleep(millis * 1000); // Sleep for defined milliseconds
+        usleep(GAME_SETTINGS.millis * 1000); // Sleep for defined milliseconds
     }
 
     cleanUp();

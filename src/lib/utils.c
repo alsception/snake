@@ -1,8 +1,11 @@
 #include "utils.h"
+#include "types/game_mode.h"
 
 #include <unistd.h>
 #include <stdlib.h> 
 #include <termios.h>
+#include <string.h>
+#include <stdio.h>
 
 // Function to enable non-canonical mode
 // https://stackoverflow.com/questions/358342/canonical-vs-non-canonical-terminal-input
@@ -51,4 +54,50 @@ char getRandomLatinCharOrNumber()
 char getRandomChar()
 {
     return getRandomLatinCharOrNumber();
+}
+
+T_Game_Mode processArguments(int argc, char **argv, T_Game_Mode mode)
+{
+    char gm[] = "god-mode";
+    char le[] = "lay-eggs";
+    char at[] = "auto";
+    char mm[] = "matrix";
+    
+    for (int i = 1; i < argc; ++i)
+    {
+        int result;
+        
+        result = strcmp(gm, argv[i]);
+        if (result == 0) 
+        {
+            mode = add_mode(mode, GOD);
+            printf("God mode activated: %d\n", mode);
+        } 
+    
+        result = strcmp(le, argv[i]);
+        if (result == 0) 
+        {
+            mode = add_mode(mode, LAYING_EGGS);
+            printf("Laying eggs mode activated: %d\n", mode);
+        }
+
+        result = strcmp(at, argv[i]);
+        if (result == 0) 
+        {
+            mode = add_mode(mode, AUTO);
+            mode = add_mode(mode, GOD); //Need god-mode also, otherwise its stuck
+            printf("Auto mode activated: %d\n", mode);
+        }
+
+        result = strcmp(mm, argv[i]);
+        if (result == 0) 
+        {
+            mode = add_mode(mode, MATRIX);
+            printf("Wake up Neo, Matrix mode is activated...: %d\n", mode);
+        }
+
+       usleep(1000 * 1000);
+    }
+
+    return mode;
 }
