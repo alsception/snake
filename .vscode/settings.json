@@ -8,6 +8,8 @@
         "stdbool.h": "c",
         "colors.h": "c",
         "signal.h": "c",
-        "game_direction.h": "c"
+        "game_direction.h": "c",
+        "game_state.h": "c",
+        "game_settings.h": "c"
     }
 }

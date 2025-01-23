@@ -211,3 +211,46 @@ void printContent(
     }    
     fflush(stdout);
 }
+
+// Upper line with informations
+void printHeaderLine(int columns, T_Game_Mode mode, int length, int rows, int headPositionX, int headPositionY, int millis, int foodX, int foodY)
+{       
+    if(columns<155)
+    {
+        //Make it responsive :)        
+        if(is_mode_active( mode, MATRIX ))
+            printf( "\r" ANSI_COLOR_GREEN "$: " ANSI_COLOR_HIGREEN "%d" ANSI_COLOR_RESET, length);
+        else
+            printf( "\r" ANSI_COLOR_YELLOW "$: " ANSI_COLOR_BLUE "%d" ANSI_COLOR_RESET, length);
+    }
+    else
+    {    
+        //IF HEAD X OR Y EQUALS TO FOODS -> THEN COLOR IN GREEN
+        const char* color = is_mode_active( mode, MATRIX ) ? ANSI_COLOR_GREEN : ANSI_COLOR_BLUE;
+        printf(
+            "\r%s"
+            "Terminal size: "
+            "y:%d rows | "
+            "x:%d columns | "
+            "headPositionX: %d | "
+            "headPositionY: %d | "
+            "refresh rate: %d | "
+            "foodX: %d | "
+            "foodY: %d | "
+            "length: %s%d "
+            "    " // Empty space is needed
+            ANSI_COLOR_RESET, 
+            color, rows, columns, headPositionX, headPositionY, millis, foodX, foodY, ANSI_COLOR_HIGREEN, length);
+    }
+}
+
+//TODO: MOVE TO RENDERING
+void printGameOverScreen(int foodEaten, int length, long long int cycle)
+{
+    printf("\nGame Over\n");
+    printf("Food eaten: %d \n", foodEaten);
+    printf("Length achieved: %d \n", length);
+    printf("Cycles played: %lld \n", cycle);
+    printf("\e[?25h"); // Reenable cursor
+}
+

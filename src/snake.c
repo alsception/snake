@@ -13,18 +13,20 @@
 #include "lib/types/game_mode.h"
 #include "lib/types/game_direction.h"
 #include "lib/types/game_settings.h"
+#include "lib/types/game_state.h"
 #include "lib/types/game_mode.h"
 #include "lib/types/colors.h"
 #include "lib/utils.h"
 #include "lib/rendering.h"
 
-
 // Variables
 long long int cycle = 0;
 int rows = 0;
 int columns = 0;
+
 int yOffset = 2;
 int xOffset = 0;
+
 int headPositionX = 21;
 int headPositionY = 22;
 
@@ -33,13 +35,15 @@ int *xBody;
 
 int foodX = 0;
 int foodY = 0;
-int length = 14;//15 tested max with 1115
 
+int length = 14; //tested max with 1115
 int foodEaten = 0;
+
 bool pausa = false;
 
-T_Game_Direction direction = RIGHT; 
 T_Game_Mode mode = NORMAL;
+T_Game_Direction direction = RIGHT; 
+T_Game_State game_state;
 
 void cleanUp()
 {
@@ -107,6 +111,18 @@ int handleKeypress()
                 pausa = !pausa;
                 break;
 
+            case 'm':
+            case 'M':
+                if( !is_mode_active(mode, MATRIX) )
+                {
+                    mode = add_mode(mode, MATRIX);
+                }
+                else
+                {
+                    mode = remove_mode(mode, MATRIX);
+                }                
+                break;
+
             case 'q': 
             case 'Q':
                 return 0; // Quit the game
@@ -140,32 +156,28 @@ void generateFood()
 
 void initBody()
 {  
-    yBody = (int *)malloc(GAME_SETTINGS.maxLength * sizeof(int));
-    xBody = (int *)malloc(GAME_SETTINGS.maxLength * sizeof(int));
+    yBody = (int *)malloc(SETTINGS.maxLength * sizeof(int));
+    xBody = (int *)malloc(SETTINGS.maxLength * sizeof(int));
     
     // Initialize array
-    for (int i = 0; i < GAME_SETTINGS.maxLength; i++)
+    for (int i = 0; i < SETTINGS.maxLength; i++)
     {
         yBody[i] = 0;
         xBody[i] = 0;
     }    
 }
 
-void initSetting()
+void initState()
 {
-   /*  T_Game_Settings settings = 
-    {
-        .millis = 50,
-        .bodyIncrement = 15,
-        .maxLength = 1000,
-        .cursorVisible = false
-    }; */
+ /*  T_Game_State game_state = {
+    .
+  } */
 }
 
 void initialize()
 {
     
-    initSetting();
+    initState();
 
     system("clear");
     
@@ -243,60 +255,16 @@ void eat()
         while ( checkBody( foodX, foodY, xBody, yBody, length) > -1);
     }
 
-    length += GAME_SETTINGS.bodyIncrement;
+    length += SETTINGS.bodyIncrement;
     foodEaten++;
 }
-
-//TODO: MOVE TO RENDERING
-// Upper line with informations
-void printHeaderLine()
-{       
-    if(columns<155)
-    {
-        //Make it responsive :)        
-        if(is_mode_active( mode, MATRIX ))
-            printf( "\r" ANSI_COLOR_GREEN "$: " ANSI_COLOR_HIGREEN "%d" ANSI_COLOR_RESET, length);
-        else
-            printf( "\r" ANSI_COLOR_YELLOW "$: " ANSI_COLOR_BLUE "%d" ANSI_COLOR_RESET, length);
-    }
-    else
-    {    
-        //IF HEAD X OR Y EQUALS TO FOODS -> THEN COLOR IN GREEN
-        const char* color = is_mode_active( mode, MATRIX ) ? ANSI_COLOR_GREEN : ANSI_COLOR_BLUE;
-        printf(
-            "\r%s"
-            "Terminal size: "
-            "y:%d rows | "
-            "x:%d columns | "
-            "headPositionX: %d | "
-            "headPositionY: %d | "
-            "refresh rate: %d | "
-            "foodX: %d | "
-            "foodY: %d | "
-            "length: %s%d "
-            "    " // Empty space is needed
-            ANSI_COLOR_RESET, 
-            color, rows, columns, headPositionX, headPositionY, GAME_SETTINGS.millis, foodX, foodY, ANSI_COLOR_HIGREEN, length);
-    }
-}
-
-//TODO: MOVE TO RENDERING
-void printGameOverScreen()
-{
-    printf("\nGame Over\n");
-    printf("Food eaten: %d \n", foodEaten);
-    printf("Length achieved: %d \n", length);
-    printf("Cycles played: %lld \n", cycle);
-    printf("\e[?25h"); // Reenable cursor
-}
-
 
 void gameOver()
 {
     disableNonCanonicalMode();
     free(yBody);
     free(xBody);
-    printGameOverScreen();    
+    printGameOverScreen(foodEaten, length, cycle);
     exit(0);
 }
 
@@ -412,11 +380,11 @@ void updateSnakeData()
 void render()
 {
     resetCursorPosition();    
-    printHeaderLine();    
+    printHeaderLine(columns, mode, length, rows, headPositionX, headPositionY, SETTINGS.millis, foodX, foodY);    
     
     printContent(rows, columns, yOffset, length, cycle, headPositionX, headPositionY, foodX, foodY, xBody, yBody, is_mode_active( mode, MATRIX )); //New problem: Too many arguments?
     
-    if(!GAME_SETTINGS.cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
+    if(!SETTINGS.cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
 }
 
 void refreshScreen()
@@ -442,11 +410,11 @@ int main(int argc, char **argv)
         if(!handleKeypress())
             break;
         refreshScreen();        
-        usleep(GAME_SETTINGS.millis * 1000); // Sleep for defined milliseconds
+        usleep(SETTINGS.millis * 1000); // Sleep for defined milliseconds
     }
 
     cleanUp();
-    printGameOverScreen();
+    printGameOverScreen(foodEaten, length, cycle);
 
     return 0;
 }

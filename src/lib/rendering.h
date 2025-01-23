@@ -25,4 +25,8 @@ void printContent(
     int *xBody, int *yBody,
     bool matrixMode);
 
+void printHeaderLine(int columns, T_Game_Mode mode, int length, int rows, int headPositionX, int headPositionY, int millis, int foodX, int foodY);
+
+void printGameOverScreen(int foodEaten, int length, long long int cycle);
+
 #endif

@@ -1,7 +1,7 @@
 #include "game_settings.h"
 
 /* Define the constant settings */
-const T_Game_Settings GAME_SETTINGS = 
+const T_Game_Settings SETTINGS = 
 {
     .millis = 50, //Milliseconds duration for one position change and screen refresh cycle. Choose between 1-200. Smaller is faster     
     .bodyIncrement = 15,

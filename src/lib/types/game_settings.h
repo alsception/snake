@@ -1,5 +1,5 @@
-#ifndef GAME_STATE
-#define GAME_STATE
+#ifndef GAME_SETTINGS_H
+#define GAME_SETTINGS_H
 
 #include <stdbool.h>
 
@@ -14,6 +14,6 @@ typedef struct
 
 
 /* Constant settings instance */
-extern const T_Game_Settings GAME_SETTINGS;
+extern const T_Game_Settings SETTINGS;
 
 #endif
