@@ -102,9 +102,10 @@ void printEmptyContent(int x, int y, int width, int depth, bool matrixMode)
     {        
         if (y == 1 || y == depth || x == 0 || x == width)
         {
-            char c = getRandomChar();
-            printf(ANSI_COLOR_GREEN"%c"ANSI_COLOR_RESET, c);
-        }                  
+            char c = '*';
+            //char c = getRandomChar();
+            printf("%c", c);
+        }
         else
         {
             printf(" ");
@@ -169,47 +170,47 @@ void printContent(
     int *xBody, int *yBody,
     bool matrixMode)
     {
-    int depth = rows - yOffset;
-    int width = columns - 2;
-    int bodyIndex = -1;
-    bool hasHead = false;
-    bool hasFood = false;
+        int depth = rows - yOffset;
+        int width = columns - 2;
+        int bodyIndex = -1;
+        bool hasHead = false;
+        bool hasFood = false;
 
-    //Screen printing is done line by line starting from top
-    for (int y = 0; y <= depth; y++)
-    {     
-        printf("\n"); // Start at new line
-        for (int x = 0; x <= width; x++)
-        {
-            if (y > 0)  //Not sure why this condition?
+        //Screen printing is done line by line starting from top
+        for (int y = 0; y <= depth; y++)
+        {     
+            printf("\n"); // Start at new line
+            for (int x = 0; x <= width; x++)
             {
-                // 1. Check if the screen cell contains head,food or body
-                hasHead = checkHead( x, y, headPositionX, headPositionY );              
-                hasFood = checkFood( x, y, foodX, foodY );
-                bodyIndex = checkBody( x, y, xBody, yBody, length );    
+                if (y > 0)  //Not sure why this condition?
+                {
+                    // 1. Check if the screen cell contains head,food or body
+                    hasHead = checkHead( x, y, headPositionX, headPositionY );              
+                    hasFood = checkFood( x, y, foodX, foodY );
+                    bodyIndex = checkBody( x, y, xBody, yBody, length );    
 
-                // 2. Print appropriate element
-                if ( hasHead )
-                {                    
-                    printSnakeHead( cycle, matrixMode );
-                }                
-                else if ( hasFood )
-                {
-                    printFood(cycle, matrixMode);
-                }                
-                else if ( bodyIndex >= 0 )
-                {
-                    printSnakeBody( bodyIndex, length, cycle, matrixMode);
-                }
-                else
-                {
-                    printEmptyContent( x, y, width, depth, matrixMode );
+                    // 2. Print appropriate element
+                    if ( hasHead )
+                    {                    
+                        printSnakeHead( cycle, matrixMode );
+                    }                
+                    else if ( hasFood )
+                    {
+                        printFood(cycle, matrixMode);
+                    }                
+                    else if ( bodyIndex >= 0 )
+                    {
+                        printSnakeBody( bodyIndex, length, cycle, matrixMode);
+                    }
+                    else
+                    {
+                        printEmptyContent( x, y, width, depth, matrixMode );
+                    }
                 }
             }
-        }
-        
-    }    
-    fflush(stdout);
+            
+        }    
+        fflush(stdout);
 }
 
 // Upper line with informations

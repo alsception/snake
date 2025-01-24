@@ -23,6 +23,8 @@
 long long int cycle = 0;
 int rows = 0;
 int columns = 0;
+int rowsPrev = 0;
+int columnsPrev = 0;
 
 int yOffset = 2;
 int xOffset = 0;
@@ -145,6 +147,12 @@ void setWindowSize()
     }
     rows = w.ws_row;
     columns = w.ws_col;
+
+    if(rowsPrev != rows || columnsPrev != columns){
+        system("clear");
+    }
+    rowsPrev = rows;
+    columnsPrev = columns;
 }
 
 void generateFood()
