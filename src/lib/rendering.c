@@ -314,4 +314,3 @@ void render(T_Game_State *gameState, T_Game_Mode mode)
     
     if(!SETTINGS.cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
 }
-

@@ -22,14 +22,14 @@
 //TODO: INCORPORATE IN GAME_STATE
 T_Game_Mode mode = NORMAL;
 T_Game_Direction direction = RIGHT; 
-
+/* 
 //move to utils
 void cleanUp(T_Game_State *gameState)
 {
     disableNonCanonicalMode();
     free(gameState->yBody);
     free(gameState->xBody);
-}
+} */
 
 //TODO: MOVE TO UTILS
 // Function to read keypresses including arrow keys
@@ -129,6 +129,15 @@ void initBody(T_Game_State *gameState)
 {  
     gameState->yBody = (int *)calloc(SETTINGS.maxLength, sizeof(int));
     gameState->xBody = (int *)calloc(SETTINGS.maxLength, sizeof(int));
+    gameState->xBody = (int *)calloc(SETTINGS.maxLength, sizeof(int));
+    /** LETS TRY TO COMMENT THIS. CALLOC SHOULD SET TO 0
+    // Initialize array
+    for (int i = 0; i < SETTINGS.maxLength; i++)
+    {        
+        gameState->yBody[i] = 0;
+        gameState->xBody[i] = 0;
+    }  */  
+    gameState->xBody = (int *)calloc(SETTINGS.maxLength, sizeof(int));    
     /** LETS TRY TO COMMENT THIS. CALLOC SHOULD SET TO 0
     // Initialize array
     for (int i = 0; i < SETTINGS.maxLength; i++)

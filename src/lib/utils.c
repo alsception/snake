@@ -1,5 +1,7 @@
 #include "utils.h"
 #include "types/game_mode.h"
+#include "types/game_state.h"
+#include "types/game_direction.h"
 
 #include <unistd.h>
 #include <stdlib.h> 
@@ -100,4 +102,11 @@ T_Game_Mode processArguments(int argc, char **argv, T_Game_Mode mode)
     }
 
     return mode;
+}
+
+void cleanUp(T_Game_State *gameState)
+{
+    disableNonCanonicalMode();
+    free(gameState->yBody);
+    free(gameState->xBody);
 }

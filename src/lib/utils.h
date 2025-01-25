@@ -2,6 +2,8 @@
 #define UTILS_H
 
 #include "types/game_mode.h"
+#include "types/game_state.h"
+#include "types/game_direction.h"
 
 // Function declarations
 void enableNonCanonicalMode();
@@ -11,5 +13,9 @@ char getRandomLatinChar();
 char getRandomFullLatinChar();
 char getRandomLatinCharOrNumber();
 T_Game_Mode processArguments(int argc, char **argv, T_Game_Mode mode);
+void cleanUp(T_Game_State *gameState);
+/* int readKeyPress();
+int handleKeypress(T_Game_State *gameState, T_Game_Direction *direction, T_Game_Mode mode);
+ */
 
 #endif
