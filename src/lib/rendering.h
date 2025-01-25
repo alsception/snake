@@ -1,7 +1,13 @@
 #ifndef RENDERING_H
 #define RENDERING_H
 
+#include "types/game_mode.h"
+#include "types/game_state.h"
+#include "types/game_settings.h"
+
 // Function declarations
+
+void render(T_Game_State *gameState, T_Game_Mode mode);
 
 int checkBody(int x, int y, int *xBody, int *yBody, int length);
 
@@ -17,20 +23,18 @@ void printFood(int cycle, bool matrixMode);
 
 void printEmptyContent(int x, int y, int width, int depth, bool matrixMode);
 
-void printContent(
-    int rows, int columns, int yOffset, 
-    int length, int cycle, 
-    int headPositionX, int headPositionY, 
-    int foodX, int foodY, 
-    int *xBody, int *yBody,
-    bool matrixMode);
+void printContent(T_Game_State *gameState, bool matrixMode);
 
-void printHeaderLine(int columns, T_Game_Mode mode, int length, int rows, int headPositionX, int headPositionY, int millis, int foodX, int foodY);
+void printHeaderLine(T_Game_State *gameState, T_Game_Mode mode);
 
-void printMaxiHeaderLine(T_Game_Mode mode, int rows, int columns, int headPositionX, int headPositionY, int millis, int foodX, int foodY, int length);
+void printMaxiHeaderLine(T_Game_Mode mode, T_Game_State *gameState);
 
 void printMiniHeaderLine(T_Game_Mode mode, int length);
 
 void printGameOverScreen(int foodEaten, int length, long long int cycle);
+
+void setWindowSize(T_Game_State *gameState);
+
+void resetCursorPosition(T_Game_State *gameState);
 
 #endif

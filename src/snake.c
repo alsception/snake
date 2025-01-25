@@ -23,6 +23,7 @@
 T_Game_Mode mode = NORMAL;
 T_Game_Direction direction = RIGHT; 
 
+//move to utils
 void cleanUp(T_Game_State *gameState)
 {
     disableNonCanonicalMode();
@@ -115,29 +116,6 @@ int handleKeypress(T_Game_State *gameState)
     return 1;
 }
 
-//TODO: MOVE TO UTILS OR RENDERING
-void setWindowSize(T_Game_State *gameState)
-{
-    struct winsize w;
-
-    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1)
-    {
-        perror("ioctl");
-        return;
-    }
-
-    gameState->rows = w.ws_row;
-    gameState->columns = w.ws_col;
-
-    if(gameState->rowsPrev != gameState->rows || gameState->columnsPrev != gameState->columns)
-    {
-        system("clear");
-    }
-
-    gameState->rowsPrev = gameState->rows;
-    gameState->columnsPrev = gameState->columns;
-}
-
 //MOVE TO ENGINE
 void generateFood(T_Game_State *gameState)
 {
@@ -182,19 +160,6 @@ void initialize(T_Game_State *gameState)
 
     enableNonCanonicalMode();
     fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK); // Set input to non-blocking mode
-}
-
-//TODO: MOVE TO RENDERING
-void resetCursorPosition(T_Game_State *gameState)
-{
-    setWindowSize(gameState);//update window size    
-
-    printf("\r"); //go to start of the line
-
-    for(int i = 0; i< gameState->rows; i++)
-    {
-        printf("\033[A");
-    } 
 }
 
 //MOVE TO ENGINE
@@ -247,6 +212,7 @@ void eat(T_Game_State *gameState)
     gameState->foodEaten++;
 }
 
+//move to utils?
 void gameOver(T_Game_State *gameState)
 {
     disableNonCanonicalMode();
@@ -369,24 +335,13 @@ void updateSnakeData(T_Game_State *gameState)
     }
 }
 
-//MOVE TO RENDERING
-void render(T_Game_State *gameState)
-{
-    resetCursorPosition(gameState);    
-    printHeaderLine(gameState->columns, mode, gameState->length, gameState->rows, gameState->headPositionX, gameState->headPositionY, SETTINGS.millis, gameState->foodX, gameState->foodY);    
-    
-    printContent(gameState->rows, gameState->columns, gameState->yOffset, gameState->length, gameState->cycle, gameState->headPositionX, gameState->headPositionY, gameState->foodX, gameState->foodY, gameState->xBody, gameState->yBody, is_mode_active( mode, MATRIX )); //New problem: Too many arguments?
-    
-    if(!SETTINGS.cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
-}
-
 void refreshScreen(T_Game_State *gameState)
 {
     if(!gameState->pausa)
     {
         updateSnakeData(gameState);
     }   
-    render(gameState);  
+    render(gameState, mode);  
 }
 
 

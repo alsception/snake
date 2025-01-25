@@ -1,8 +1,15 @@
 #include <stdio.h>
 #include <stdbool.h> // Include this header to use bool, true, and false
+#include <sys/ioctl.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include "rendering.h"
 #include "utils.h"
 #include "types/colors.h"
-#include "rendering.h"
+#include "types/game_mode.h"
+#include "types/game_state.h"
+#include "types/game_settings.h"
 
 /* Function implementations */
 
@@ -164,74 +171,69 @@ int checkBody(int x, int y, int *xBody, int *yBody, int length)
     return -1;
 }
 
-void printContent(
-    int rows, int columns, int yOffset, 
-    int length, int cycle, 
-    int headPositionX, int headPositionY, 
-    int foodX, int foodY, 
-    int *xBody, int *yBody,
-    bool matrixMode)
-    {
-        int depth = rows - yOffset;
-        int width = columns - 2;
-        int bodyIndex = -1;
-        bool hasHead = false;
-        bool hasFood = false;
+void printContent(T_Game_State *gameState, bool matrixMode)
+{
+    int depth = gameState->rows - gameState->yOffset;
+    int width = gameState->columns - 2;
+    int bodyIndex = -1;
+    bool hasHead = false;
+    bool hasFood = false;
 
-        //Screen printing is done line by line starting from top
-        for (int y = 0; y <= depth; y++)
-        {     
-            printf("\n"); // Start at new line
-            for (int x = 0; x <= width; x++)
+    //Screen printing is done line by line starting from top
+    for (int y = 0; y <= depth; y++)
+    {     
+        printf("\n"); // Start at new line
+        for (int x = 0; x <= width; x++)
+        {
+            if (y > 0)  //Not sure why this condition?
             {
-                if (y > 0)  //Not sure why this condition?
-                {
-                    // 1. Check if the screen cell contains head,food or body
-                    hasHead = checkHead( x, y, headPositionX, headPositionY );              
-                    hasFood = checkFood( x, y, foodX, foodY );
-                    bodyIndex = checkBody( x, y, xBody, yBody, length );    
+                // 1. Check if the screen cell contains head,food or body
+                hasHead = checkHead( x, y, gameState->headPositionX, gameState->headPositionY );              
+                hasFood = checkFood( x, y, gameState->foodX, gameState->foodY );
+                bodyIndex = checkBody( x, y, gameState->xBody, gameState->yBody, gameState->length );    
 
-                    // 2. Print appropriate element
-                    if ( hasHead )
-                    {                    
-                        printSnakeHead( cycle, matrixMode );
-                    }                
-                    else if ( hasFood )
-                    {
-                        printFood(cycle, matrixMode);
-                    }                
-                    else if ( bodyIndex >= 0 )
-                    {
-                        printSnakeBody( bodyIndex, length, cycle, matrixMode);
-                    }
-                    else
-                    {
-                        printEmptyContent( x, y, width, depth, matrixMode );
-                    }
+                // 2. Print appropriate element
+                if ( hasHead )
+                {                    
+                    printSnakeHead( gameState->cycle, matrixMode );
+                }                
+                else if ( hasFood )
+                {
+                    printFood(gameState->cycle, matrixMode);
+                }                
+                else if ( bodyIndex >= 0 )
+                {
+                    printSnakeBody( bodyIndex, gameState->length, gameState->cycle, matrixMode);
+                }
+                else
+                {
+                    printEmptyContent( x, y, width, depth, matrixMode );
                 }
             }
-            
-        }    
-        fflush(stdout);
+        }
+        
+    }    
+    fflush(stdout);
 }
 
 // Upper line with informations
-void printHeaderLine(int columns, T_Game_Mode mode, int length, int rows, int headPositionX, int headPositionY, int millis, int foodX, int foodY)
+void printHeaderLine(T_Game_State *gameState, T_Game_Mode mode)
 {       
-    if(columns<155)
+    if(gameState->columns<155)
     {
         //Make it responsive :)
-        printMiniHeaderLine(mode, length);
+        printMiniHeaderLine(mode, gameState->length);
     }
     else
     {    
         //IF HEAD X OR Y EQUALS TO FOODS -> THEN COLOR IN GREEN
-        printMaxiHeaderLine(mode, rows, columns, headPositionX, headPositionY, millis, foodX, foodY, length);
+        printMaxiHeaderLine(mode, gameState);
     }
 }
 
-void printMaxiHeaderLine(T_Game_Mode mode, int rows, int columns, int headPositionX, int headPositionY, int millis, int foodX, int foodY, int length)
+void printMaxiHeaderLine(T_Game_Mode mode, T_Game_State *gameState)
 {
+    //TODO: add length after food
     const char *color = is_mode_active(mode, MATRIX) ? ANSI_COLOR_GREEN : ANSI_COLOR_BLUE;
     printf(
         "\r%s"
@@ -246,17 +248,19 @@ void printMaxiHeaderLine(T_Game_Mode mode, int rows, int columns, int headPositi
         "length: %s%d "
         "    " // Empty space is needed
         ANSI_COLOR_RESET,
-        color, rows, columns, headPositionX, headPositionY, millis, foodX, foodY, ANSI_COLOR_HIGREEN, length);
+        color,  gameState->rows,  gameState->columns,  
+        gameState->headPositionX,  gameState->headPositionY, 
+        SETTINGS.millis,  gameState->foodX,  gameState->foodY, ANSI_COLOR_HIGREEN, gameState->length);
 }
 
 void printMiniHeaderLine(T_Game_Mode mode, int length)
 {
+    //TODO: add length after food
     if (is_mode_active(mode, MATRIX))
         printf("\r" ANSI_COLOR_GREEN "$: " ANSI_COLOR_HIGREEN "%d" ANSI_COLOR_RESET, length);
     else
         printf("\r" ANSI_COLOR_YELLOW "$: " ANSI_COLOR_BLUE "%d" ANSI_COLOR_RESET, length);
 } 
-
 
 void printGameOverScreen(int foodEaten, int length, long long int cycle)
 {
@@ -265,5 +269,49 @@ void printGameOverScreen(int foodEaten, int length, long long int cycle)
     printf("Length achieved: %d \n", length);
     printf("Cycles played: %lld \n", cycle);
     printf("\e[?25h"); // Reenable cursor
+}
+
+//TODO: MOVE TO UTILS OR RENDERING
+void setWindowSize(T_Game_State *gameState)
+{
+    struct winsize w;
+
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1)
+    {
+        perror("ioctl");
+        return;
+    }
+
+    gameState->rows = w.ws_row;
+    gameState->columns = w.ws_col;
+
+    if(gameState->rowsPrev != gameState->rows || gameState->columnsPrev != gameState->columns)
+    {
+        system("clear");
+    }
+
+    gameState->rowsPrev = gameState->rows;
+    gameState->columnsPrev = gameState->columns;
+}
+
+void resetCursorPosition(T_Game_State *gameState)
+{
+    setWindowSize(gameState);//update window size    
+
+    printf("\r"); //go to start of the line
+
+    for(int i = 0; i< gameState->rows; i++)
+    {
+        printf("\033[A");
+    } 
+}
+
+void render(T_Game_State *gameState, T_Game_Mode mode)
+{
+    resetCursorPosition(gameState);    
+    printHeaderLine(gameState, SETTINGS.millis);        
+    printContent(gameState, is_mode_active( mode, MATRIX )); 
+    
+    if(!SETTINGS.cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
 }
 

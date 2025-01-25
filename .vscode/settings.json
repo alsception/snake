@@ -10,6 +10,8 @@
         "signal.h": "c",
         "game_direction.h": "c",
         "game_state.h": "c",
-        "game_settings.h": "c"
+        "game_settings.h": "c",
+        "rendering.h": "c",
+        "stdlib.h": "c"
     }
 }
