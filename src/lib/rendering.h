@@ -27,6 +27,10 @@ void printContent(
 
 void printHeaderLine(int columns, T_Game_Mode mode, int length, int rows, int headPositionX, int headPositionY, int millis, int foodX, int foodY);
 
+void printMaxiHeaderLine(T_Game_Mode mode, int rows, int columns, int headPositionX, int headPositionY, int millis, int foodX, int foodY, int length);
+
+void printMiniHeaderLine(T_Game_Mode mode, int length);
+
 void printGameOverScreen(int foodEaten, int length, long long int cycle);
 
 #endif

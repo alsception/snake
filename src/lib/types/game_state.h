@@ -32,4 +32,8 @@ typedef struct
     bool pausa;
 } T_Game_State;
 
+void initialize_game_state(T_Game_State *state, int initial_length);
+
+void cleanup_game_state(T_Game_State *state);
+
 #endif

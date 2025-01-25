@@ -29,23 +29,17 @@ int columnsPrev = 0;
 int yOffset = 2;
 int xOffset = 0;
 
-int headPositionX = 21;
-int headPositionY = 22;
-
 int *yBody;
 int *xBody;
-
-int foodX = 0;
-int foodY = 0;
 
 int length = 14; //tested max with 1115
 int foodEaten = 0;
 
 bool pausa = false;
 
+//TODO: INCORPORATE IN GAME_STATE
 T_Game_Mode mode = NORMAL;
 T_Game_Direction direction = RIGHT; 
-T_Game_State game_state;
 
 void cleanUp()
 {
@@ -155,17 +149,17 @@ void setWindowSize()
     columnsPrev = columns;
 }
 
-void generateFood()
+void generateFood(T_Game_State *gameState)
 {
     //Food is generated randomly
-    foodX = (rand() % (columns - 4) + 2);
-    foodY = (rand() % (rows - 4) + 2);
+    gameState->foodX = (rand() % (columns - 4) + 2);
+    gameState->foodY = (rand() % (rows - 4) + 2);
 }
 
 void initBody()
 {  
-    yBody = (int *)malloc(SETTINGS.maxLength * sizeof(int));
-    xBody = (int *)malloc(SETTINGS.maxLength * sizeof(int));
+    yBody = (int *)calloc(SETTINGS.maxLength, sizeof(int));
+    xBody = (int *)calloc(SETTINGS.maxLength, sizeof(int));
     
     // Initialize array
     for (int i = 0; i < SETTINGS.maxLength; i++)
@@ -175,18 +169,11 @@ void initBody()
     }    
 }
 
-void initState()
-{
- /*  T_Game_State game_state = {
-    .
-  } */
-}
-
-void initialize()
+void initialize(T_Game_State *gameState)
 {
     
-    initState();
-
+/*     initState();
+ */
     system("clear");
     
     // Initial size print and frame
@@ -199,11 +186,11 @@ void initialize()
         exit(0);
     }
 
-    headPositionX = columns/4;
-    headPositionY = rows/2;
+    gameState->headPositionX = columns/4;
+    gameState->headPositionY = rows/2;
 
     initBody();
-    generateFood();
+    generateFood(gameState);
 
     enableNonCanonicalMode();
     fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK); // Set input to non-blocking mode
@@ -222,11 +209,11 @@ void resetCursorPosition()
 }
 
 // Return true if heads position is collided with one of the body elements
-bool detectBodyCollision()
+bool detectBodyCollision(T_Game_State *gameState)
 {
     for (int i = 0; i < length; i++)
     {
-        if (headPositionX == xBody[i] && headPositionY == yBody[i])
+        if (gameState->headPositionX == xBody[i] && gameState->headPositionY == yBody[i])
         {
             return true;
         }
@@ -234,33 +221,33 @@ bool detectBodyCollision()
     return false;
 }
 
-bool detectEating()
+bool detectEating(T_Game_State *gameState)
 {
     //Why this separate function for 1 expression?
     //Because maybe in the future we would want to detect eating by some other condition
-    return headPositionX == foodX && headPositionY == foodY;
+    return gameState->headPositionX == gameState->foodX && gameState->headPositionY == gameState->foodY;
 }
 
-void layEgg()
+void layEgg(T_Game_State *gameState)
 {    
     //Food is actually layed egg from snake's tail
-    foodX = xBody[length-1];
-    foodY = yBody[length-1];
+    gameState->foodX = xBody[length-1];
+    gameState->foodY = yBody[length-1];
 }
 
-void eat()
+void eat(T_Game_State *gameState)
 {
     if( is_mode_active( mode, LAYING_EGGS ))
     {
-        layEgg();
+        layEgg(gameState);
     }
     else
     {        
         do
         {
-            generateFood();
+            generateFood(gameState);
         } 
-        while ( checkBody( foodX, foodY, xBody, yBody, length) > -1);
+        while ( checkBody( gameState->foodX, gameState->foodY, xBody, yBody, length) > -1);
     }
 
     length += SETTINGS.bodyIncrement;
@@ -276,34 +263,34 @@ void gameOver()
     exit(0);
 }
 
-void autoPlay()
+void autoPlay(T_Game_State *gameState)
 {
     int z = (rand() % (4) + 0);
 
     switch (z)
     {
     case 0:
-        headPositionX--;
-        if (headPositionX < 1)
-            headPositionX = columns - 2;
+        gameState->headPositionX--;
+        if (gameState->headPositionX < 1)
+            gameState->headPositionX = columns - 2;
         break;
 
     case 1:
-        headPositionX++;
-        if (headPositionX > columns - 1)
-            headPositionX = 1;
+        gameState->headPositionX++;
+        if (gameState->headPositionX > columns - 1)
+            gameState->headPositionX = 1;
         break;
 
     case 2:
-        headPositionY--;
-        if (headPositionY < 1)
-            headPositionY = rows - 2;
+        gameState->headPositionY--;
+        if (gameState->headPositionY < 1)
+            gameState->headPositionY = rows - 2;
         break;
 
     case 3:
-        headPositionY++;
-        if (headPositionY > rows - 1)
-            headPositionY = 1;
+        gameState->headPositionY++;
+        if (gameState->headPositionY > rows - 1)
+            gameState->headPositionY = 1;
         break;
     
     default:
@@ -311,38 +298,38 @@ void autoPlay()
     }
 }
 
-void updateHeadPosition()
+void updateHeadPosition(T_Game_State *gameState)
 {
     if ( is_mode_active( mode, AUTO ) && ( cycle % 100 ))
     {
-        autoPlay();
+        autoPlay(gameState);
     }
     else
     {
         //TODO: EXTRACT FUNCITON
         switch (direction) {
             case 'L':
-                headPositionX--;
-                if (headPositionX < 1)
-                    headPositionX = columns - 3;
+                gameState->headPositionX--;
+                if (gameState->headPositionX < 1)
+                    gameState->headPositionX = columns - 3;
                 break;
 
             case 'R':
-                headPositionX++;
-                if (headPositionX > columns - 3)
-                    headPositionX = 1;
+                gameState->headPositionX++;
+                if (gameState->headPositionX > columns - 3)
+                    gameState->headPositionX = 1;
                 break;
 
             case 'U':
-                headPositionY--;
-                if (headPositionY < yOffset)
-                    headPositionY = rows - 3;
+                gameState->headPositionY--;
+                if (gameState->headPositionY < yOffset)
+                    gameState->headPositionY = rows - 3;
                 break;
 
             case 'D':
-                headPositionY++;
-                if (headPositionY > rows - yOffset - 1)
-                    headPositionY = yOffset;
+                gameState->headPositionY++;
+                if (gameState->headPositionY > rows - yOffset - 1)
+                    gameState->headPositionY = yOffset;
                 break;
 
             default:
@@ -351,7 +338,7 @@ void updateHeadPosition()
     }
 }
 
-void updateBodyPosition()
+void updateBodyPosition(T_Game_State *gameState)
 {
     //Every element (i) of the snakes body takes the x,y coordinates of the previous element (i-1)
     //And first body element takes head's position
@@ -361,63 +348,70 @@ void updateBodyPosition()
         yBody[i] = yBody[i-1];
     }
 
-    xBody[0] = headPositionX;
-    yBody[0] = headPositionY;
+    xBody[0] = gameState->headPositionX;
+    yBody[0] = gameState->headPositionY;
 }
 
-void updateSnakeData()
+void updateSnakeData(T_Game_State *gameState)
 {
     // Update body before head, because it must follow the heads previous position
-    updateBodyPosition();
+    updateBodyPosition(gameState);
 
     // Update head position based on current direction
-    updateHeadPosition();
+    updateHeadPosition(gameState);
 
-    if( !is_mode_active( mode, GOD ) && detectBodyCollision() )
+    if( !is_mode_active( mode, GOD ) && detectBodyCollision(gameState) )
     {
         gameOver();        
     }    
 
-    if ( detectEating() )
+    if ( detectEating(gameState) )
     {
-        eat();
-        updateBodyPosition();        
+        eat(gameState);
+        updateBodyPosition(gameState);        
     }
 }
 
-void render()
+void render(T_Game_State *gameState)
 {
     resetCursorPosition();    
-    printHeaderLine(columns, mode, length, rows, headPositionX, headPositionY, SETTINGS.millis, foodX, foodY);    
+    printHeaderLine(columns, mode, length, rows, gameState->headPositionX, gameState->headPositionY, SETTINGS.millis, gameState->foodX, gameState->foodY);    
     
-    printContent(rows, columns, yOffset, length, cycle, headPositionX, headPositionY, foodX, foodY, xBody, yBody, is_mode_active( mode, MATRIX )); //New problem: Too many arguments?
+    printContent(rows, columns, yOffset, length, cycle, gameState->headPositionX, gameState->headPositionY, gameState->foodX, gameState->foodY, xBody, yBody, is_mode_active( mode, MATRIX )); //New problem: Too many arguments?
     
     if(!SETTINGS.cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
 }
 
-void refreshScreen()
+void refreshScreen(T_Game_State *gameState)
 {
     if(!pausa)
     {
-        updateSnakeData();
+        updateSnakeData(gameState);
     }   
-    render();  
+    render(gameState);  
 }
 
 
 int main(int argc, char **argv)
 {
-    if(argc > 0)
-        mode = processArguments(argc,argv,mode);    
+    T_Game_State gameState;
 
-    initialize();
+    // Initialize with a default length of 14
+    initialize_game_state(&gameState, 14);
+
+
+    if(argc > 0)
+        mode = processArguments(argc,argv, mode);    
+    
+
+    initialize(&gameState);
         
     while (1)
     {
         cycle++;
         if(!handleKeypress())
             break;
-        refreshScreen();        
+        refreshScreen(&gameState);        
         usleep(SETTINGS.millis * 1000); // Sleep for defined milliseconds
     }
 

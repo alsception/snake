@@ -2,7 +2,7 @@
 #include <stdbool.h> // Include this header to use bool, true, and false
 #include "utils.h"
 #include "types/colors.h"
-
+#include "rendering.h"
 
 /* Function implementations */
 
@@ -84,6 +84,7 @@ void printFood(int cycle, bool matrixMode)
     if( matrixMode )
     {
         ANSI_COLOR_FOOD = ANSI_COLOR_RED;
+        printf( "%sΘ%s", ANSI_COLOR_FOOD,ANSI_COLOR_RESET );
     }
     else
     {
@@ -91,9 +92,10 @@ void printFood(int cycle, bool matrixMode)
             ANSI_COLOR_FOOD = ANSI_COLOR_RED;
         else
             ANSI_COLOR_FOOD = ANSI_COLOR_YELLOW;
+        printf( "%s$%s", ANSI_COLOR_FOOD, ANSI_COLOR_RESET );
+
     }    
     
-    printf( "%s$%s", ANSI_COLOR_FOOD, ANSI_COLOR_RESET );
 }
 
 void printEmptyContent(int x, int y, int width, int depth, bool matrixMode)
@@ -218,34 +220,44 @@ void printHeaderLine(int columns, T_Game_Mode mode, int length, int rows, int he
 {       
     if(columns<155)
     {
-        //Make it responsive :)        
-        if(is_mode_active( mode, MATRIX ))
-            printf( "\r" ANSI_COLOR_GREEN "$: " ANSI_COLOR_HIGREEN "%d" ANSI_COLOR_RESET, length);
-        else
-            printf( "\r" ANSI_COLOR_YELLOW "$: " ANSI_COLOR_BLUE "%d" ANSI_COLOR_RESET, length);
+        //Make it responsive :)
+        printMiniHeaderLine(mode, length);
     }
     else
     {    
         //IF HEAD X OR Y EQUALS TO FOODS -> THEN COLOR IN GREEN
-        const char* color = is_mode_active( mode, MATRIX ) ? ANSI_COLOR_GREEN : ANSI_COLOR_BLUE;
-        printf(
-            "\r%s"
-            "Terminal size: "
-            "y:%d rows | "
-            "x:%d columns | "
-            "headPositionX: %d | "
-            "headPositionY: %d | "
-            "refresh rate: %d | "
-            "foodX: %d | "
-            "foodY: %d | "
-            "length: %s%d "
-            "    " // Empty space is needed
-            ANSI_COLOR_RESET, 
-            color, rows, columns, headPositionX, headPositionY, millis, foodX, foodY, ANSI_COLOR_HIGREEN, length);
+        printMaxiHeaderLine(mode, rows, columns, headPositionX, headPositionY, millis, foodX, foodY, length);
     }
 }
 
-//TODO: MOVE TO RENDERING
+void printMaxiHeaderLine(T_Game_Mode mode, int rows, int columns, int headPositionX, int headPositionY, int millis, int foodX, int foodY, int length)
+{
+    const char *color = is_mode_active(mode, MATRIX) ? ANSI_COLOR_GREEN : ANSI_COLOR_BLUE;
+    printf(
+        "\r%s"
+        "Terminal size: "
+        "y:%d rows | "
+        "x:%d columns | "
+        "headPositionX: %d | "
+        "headPositionY: %d | "
+        "refresh rate: %d | "
+        "foodX: %d | "
+        "foodY: %d | "
+        "length: %s%d "
+        "    " // Empty space is needed
+        ANSI_COLOR_RESET,
+        color, rows, columns, headPositionX, headPositionY, millis, foodX, foodY, ANSI_COLOR_HIGREEN, length);
+}
+
+void printMiniHeaderLine(T_Game_Mode mode, int length)
+{
+    if (is_mode_active(mode, MATRIX))
+        printf("\r" ANSI_COLOR_GREEN "$: " ANSI_COLOR_HIGREEN "%d" ANSI_COLOR_RESET, length);
+    else
+        printf("\r" ANSI_COLOR_YELLOW "$: " ANSI_COLOR_BLUE "%d" ANSI_COLOR_RESET, length);
+} 
+
+
 void printGameOverScreen(int foodEaten, int length, long long int cycle)
 {
     printf("\nGame Over\n");
