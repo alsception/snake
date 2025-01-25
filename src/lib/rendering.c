@@ -79,8 +79,7 @@ void printSnakeHead(int cycle, bool matrixMode)
             printf( ANSI_COLOR_GREEN "X" ANSI_COLOR_RESET );
         else
             printf( ANSI_COLOR_CYAN "@" ANSI_COLOR_RESET );
-    }
-    
+    }    
 }
 
 void printFood(int cycle, bool matrixMode)
@@ -99,10 +98,9 @@ void printFood(int cycle, bool matrixMode)
             ANSI_COLOR_FOOD = ANSI_COLOR_RED;
         else
             ANSI_COLOR_FOOD = ANSI_COLOR_YELLOW;
-        printf( "%s$%s", ANSI_COLOR_FOOD, ANSI_COLOR_RESET );
 
-    }    
-    
+        printf( "%s$%s", ANSI_COLOR_FOOD, ANSI_COLOR_RESET );
+    }        
 }
 
 void printEmptyContent(int x, int y, int width, int depth, bool matrixMode)
@@ -219,14 +217,14 @@ void printContent(T_Game_State *gameState, bool matrixMode)
 // Upper line with informations
 void printHeaderLine(T_Game_State *gameState, T_Game_Mode mode)
 {       
-    if(gameState->columns<155)
+    if(gameState->columns < 155)
     {
         //Make it responsive :)
         printMiniHeaderLine(mode, gameState->length);
     }
     else
     {    
-        //IF HEAD X OR Y EQUALS TO FOODS -> THEN COLOR IN GREEN
+        //TODO: IF HEAD X OR Y EQUALS TO FOODS -> THEN COLOR IN GREEN
         printMaxiHeaderLine(mode, gameState);
     }
 }
@@ -271,7 +269,6 @@ void printGameOverScreen(int foodEaten, int length, long long int cycle)
     printf("\e[?25h"); // Reenable cursor
 }
 
-//TODO: MOVE TO UTILS OR RENDERING
 void setWindowSize(T_Game_State *gameState)
 {
     struct winsize w;
