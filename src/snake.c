@@ -19,35 +19,18 @@
 #include "lib/utils.h"
 #include "lib/rendering.h"
 
-// Variables
-long long int cycle = 0;
-int rows = 0;
-int columns = 0;
-int rowsPrev = 0;
-int columnsPrev = 0;
-
-int yOffset = 2;
-int xOffset = 0;
-
-int *yBody;
-int *xBody;
-
-int length = 14; //tested max with 1115
-int foodEaten = 0;
-
-bool pausa = false;
-
 //TODO: INCORPORATE IN GAME_STATE
 T_Game_Mode mode = NORMAL;
 T_Game_Direction direction = RIGHT; 
 
-void cleanUp()
+void cleanUp(T_Game_State *gameState)
 {
     disableNonCanonicalMode();
-    free(yBody);
-    free(xBody);
+    free(gameState->yBody);
+    free(gameState->xBody);
 }
 
+//TODO: MOVE TO UTILS
 // Function to read keypresses including arrow keys
 int readKeyPress() 
 {
@@ -70,7 +53,8 @@ int readKeyPress()
     return ch; // Return the actual character if it's not an arrow key
 }
 
-int handleKeypress()
+//TODO: MOVE TO UTILS
+int handleKeypress(T_Game_State *gameState)
 {
     // Check for keyboard input
     int ch = readKeyPress();
@@ -104,7 +88,7 @@ int handleKeypress()
 
             case 'p': 
             case 'P':
-                pausa = !pausa;
+                gameState->pausa = !gameState->pausa;
                 break;
 
             case 'm':
@@ -131,89 +115,95 @@ int handleKeypress()
     return 1;
 }
 
-void setWindowSize()
+//TODO: MOVE TO UTILS OR RENDERING
+void setWindowSize(T_Game_State *gameState)
 {
     struct winsize w;
+
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1)
     {
         perror("ioctl");
         return;
     }
-    rows = w.ws_row;
-    columns = w.ws_col;
 
-    if(rowsPrev != rows || columnsPrev != columns){
+    gameState->rows = w.ws_row;
+    gameState->columns = w.ws_col;
+
+    if(gameState->rowsPrev != gameState->rows || gameState->columnsPrev != gameState->columns)
+    {
         system("clear");
     }
-    rowsPrev = rows;
-    columnsPrev = columns;
+
+    gameState->rowsPrev = gameState->rows;
+    gameState->columnsPrev = gameState->columns;
 }
 
+//MOVE TO ENGINE
 void generateFood(T_Game_State *gameState)
 {
     //Food is generated randomly
-    gameState->foodX = (rand() % (columns - 4) + 2);
-    gameState->foodY = (rand() % (rows - 4) + 2);
+    gameState->foodX = (rand() % (gameState->columns - 4) + 2);
+    gameState->foodY = (rand() % (gameState->rows - 4) + 2);
 }
 
-void initBody()
+//MOVE TO ENGINE
+void initBody(T_Game_State *gameState)
 {  
-    yBody = (int *)calloc(SETTINGS.maxLength, sizeof(int));
-    xBody = (int *)calloc(SETTINGS.maxLength, sizeof(int));
-    
+    gameState->yBody = (int *)calloc(SETTINGS.maxLength, sizeof(int));
+    gameState->xBody = (int *)calloc(SETTINGS.maxLength, sizeof(int));
+    /** LETS TRY TO COMMENT THIS. CALLOC SHOULD SET TO 0
     // Initialize array
     for (int i = 0; i < SETTINGS.maxLength; i++)
-    {
-        yBody[i] = 0;
-        xBody[i] = 0;
-    }    
+    {        
+        gameState->yBody[i] = 0;
+        gameState->xBody[i] = 0;
+    }  */  
 }
 
 void initialize(T_Game_State *gameState)
 {
-    
-/*     initState();
- */
     system("clear");
     
     // Initial size print and frame
     // This is important to get rows and columns    
-    setWindowSize();
+    setWindowSize(gameState);
 
-    if(columns < 7 || rows < 5 )
+    if(gameState->columns < 7 || gameState->rows < 5 )
     {
-        printf("\nScreen is too small to play snake :/ \nPlease ensure at least 5 rows height and 7 columns width (found %i r, %i c).\n",rows,columns);
+        printf("\nScreen is too small to play snake :/ \nPlease ensure at least 5 rows height and 7 columns width (found %i r, %i c).\n",gameState->rows,gameState->columns);
         exit(0);
     }
 
-    gameState->headPositionX = columns/4;
-    gameState->headPositionY = rows/2;
+    gameState->headPositionX = gameState->columns/4;
+    gameState->headPositionY = gameState->rows/2;
 
-    initBody();
+    initBody(gameState);
     generateFood(gameState);
 
     enableNonCanonicalMode();
     fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK); // Set input to non-blocking mode
 }
 
-void resetCursorPosition()
+//TODO: MOVE TO RENDERING
+void resetCursorPosition(T_Game_State *gameState)
 {
-    setWindowSize();//update window size    
+    setWindowSize(gameState);//update window size    
 
     printf("\r"); //go to start of the line
 
-    for(int i = 0; i< rows; i++)
+    for(int i = 0; i< gameState->rows; i++)
     {
         printf("\033[A");
     } 
 }
 
+//MOVE TO ENGINE
 // Return true if heads position is collided with one of the body elements
 bool detectBodyCollision(T_Game_State *gameState)
 {
-    for (int i = 0; i < length; i++)
+    for (int i = 0; i < gameState->length; i++)
     {
-        if (gameState->headPositionX == xBody[i] && gameState->headPositionY == yBody[i])
+        if (gameState->headPositionX == gameState->xBody[i] && gameState->headPositionY == gameState->yBody[i])
         {
             return true;
         }
@@ -221,6 +211,7 @@ bool detectBodyCollision(T_Game_State *gameState)
     return false;
 }
 
+//MOVE TO ENGINE
 bool detectEating(T_Game_State *gameState)
 {
     //Why this separate function for 1 expression?
@@ -228,13 +219,15 @@ bool detectEating(T_Game_State *gameState)
     return gameState->headPositionX == gameState->foodX && gameState->headPositionY == gameState->foodY;
 }
 
+//MOVE TO ENGINE
 void layEgg(T_Game_State *gameState)
 {    
     //Food is actually layed egg from snake's tail
-    gameState->foodX = xBody[length-1];
-    gameState->foodY = yBody[length-1];
+    gameState->foodX = gameState->xBody[gameState->length-1];
+    gameState->foodY = gameState->yBody[gameState->length-1];
 }
 
+//MOVE TO ENGINE
 void eat(T_Game_State *gameState)
 {
     if( is_mode_active( mode, LAYING_EGGS ))
@@ -247,22 +240,23 @@ void eat(T_Game_State *gameState)
         {
             generateFood(gameState);
         } 
-        while ( checkBody( gameState->foodX, gameState->foodY, xBody, yBody, length) > -1);
+        while ( checkBody( gameState->foodX, gameState->foodY, gameState->xBody, gameState->yBody, gameState->length) > -1);
     }
 
-    length += SETTINGS.bodyIncrement;
-    foodEaten++;
+    gameState->length += SETTINGS.bodyIncrement;
+    gameState->foodEaten++;
 }
 
-void gameOver()
+void gameOver(T_Game_State *gameState)
 {
     disableNonCanonicalMode();
-    free(yBody);
-    free(xBody);
-    printGameOverScreen(foodEaten, length, cycle);
+    free(gameState->yBody);
+    free(gameState->xBody);
+    printGameOverScreen(gameState->foodEaten, gameState->length, gameState->cycle);
     exit(0);
 }
 
+//MOVE TO ENGINE
 void autoPlay(T_Game_State *gameState)
 {
     int z = (rand() % (4) + 0);
@@ -272,24 +266,24 @@ void autoPlay(T_Game_State *gameState)
     case 0:
         gameState->headPositionX--;
         if (gameState->headPositionX < 1)
-            gameState->headPositionX = columns - 2;
+            gameState->headPositionX = gameState->columns - 2;
         break;
 
     case 1:
         gameState->headPositionX++;
-        if (gameState->headPositionX > columns - 1)
+        if (gameState->headPositionX > gameState->columns - 1)
             gameState->headPositionX = 1;
         break;
 
     case 2:
         gameState->headPositionY--;
         if (gameState->headPositionY < 1)
-            gameState->headPositionY = rows - 2;
+            gameState->headPositionY = gameState->rows - 2;
         break;
 
     case 3:
         gameState->headPositionY++;
-        if (gameState->headPositionY > rows - 1)
+        if (gameState->headPositionY > gameState->rows - 1)
             gameState->headPositionY = 1;
         break;
     
@@ -298,9 +292,10 @@ void autoPlay(T_Game_State *gameState)
     }
 }
 
+//MOVE TO ENGINE
 void updateHeadPosition(T_Game_State *gameState)
 {
-    if ( is_mode_active( mode, AUTO ) && ( cycle % 100 ))
+    if ( is_mode_active( mode, AUTO ) && ( gameState->cycle % 100 ))
     {
         autoPlay(gameState);
     }
@@ -311,25 +306,25 @@ void updateHeadPosition(T_Game_State *gameState)
             case 'L':
                 gameState->headPositionX--;
                 if (gameState->headPositionX < 1)
-                    gameState->headPositionX = columns - 3;
+                    gameState->headPositionX = gameState->columns - 3;
                 break;
 
             case 'R':
                 gameState->headPositionX++;
-                if (gameState->headPositionX > columns - 3)
+                if (gameState->headPositionX > gameState->columns - 3)
                     gameState->headPositionX = 1;
                 break;
 
             case 'U':
                 gameState->headPositionY--;
-                if (gameState->headPositionY < yOffset)
-                    gameState->headPositionY = rows - 3;
+                if (gameState->headPositionY < gameState->yOffset)
+                    gameState->headPositionY = gameState->rows - 3;
                 break;
 
             case 'D':
                 gameState->headPositionY++;
-                if (gameState->headPositionY > rows - yOffset - 1)
-                    gameState->headPositionY = yOffset;
+                if (gameState->headPositionY > gameState->rows - gameState->yOffset - 1)
+                    gameState->headPositionY = gameState->yOffset;
                 break;
 
             default:
@@ -338,20 +333,22 @@ void updateHeadPosition(T_Game_State *gameState)
     }
 }
 
+//MOVE TO ENGINE
 void updateBodyPosition(T_Game_State *gameState)
 {
     //Every element (i) of the snakes body takes the x,y coordinates of the previous element (i-1)
     //And first body element takes head's position
-    for (int i = length - 1; i > 0; i--)
+    for (int i = gameState->length - 1; i > 0; i--)
     {
-        xBody[i] = xBody[i-1];
-        yBody[i] = yBody[i-1];
+        gameState->xBody[i] = gameState->xBody[i-1];
+        gameState->yBody[i] = gameState->yBody[i-1];
     }
 
-    xBody[0] = gameState->headPositionX;
-    yBody[0] = gameState->headPositionY;
+    gameState->xBody[0] = gameState->headPositionX;
+    gameState->yBody[0] = gameState->headPositionY;
 }
 
+//MOVE TO ENGINE
 void updateSnakeData(T_Game_State *gameState)
 {
     // Update body before head, because it must follow the heads previous position
@@ -362,7 +359,7 @@ void updateSnakeData(T_Game_State *gameState)
 
     if( !is_mode_active( mode, GOD ) && detectBodyCollision(gameState) )
     {
-        gameOver();        
+        gameOver(gameState);        
     }    
 
     if ( detectEating(gameState) )
@@ -372,19 +369,20 @@ void updateSnakeData(T_Game_State *gameState)
     }
 }
 
+//MOVE TO RENDERING
 void render(T_Game_State *gameState)
 {
-    resetCursorPosition();    
-    printHeaderLine(columns, mode, length, rows, gameState->headPositionX, gameState->headPositionY, SETTINGS.millis, gameState->foodX, gameState->foodY);    
+    resetCursorPosition(gameState);    
+    printHeaderLine(gameState->columns, mode, gameState->length, gameState->rows, gameState->headPositionX, gameState->headPositionY, SETTINGS.millis, gameState->foodX, gameState->foodY);    
     
-    printContent(rows, columns, yOffset, length, cycle, gameState->headPositionX, gameState->headPositionY, gameState->foodX, gameState->foodY, xBody, yBody, is_mode_active( mode, MATRIX )); //New problem: Too many arguments?
+    printContent(gameState->rows, gameState->columns, gameState->yOffset, gameState->length, gameState->cycle, gameState->headPositionX, gameState->headPositionY, gameState->foodX, gameState->foodY, gameState->xBody, gameState->yBody, is_mode_active( mode, MATRIX )); //New problem: Too many arguments?
     
     if(!SETTINGS.cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
 }
 
 void refreshScreen(T_Game_State *gameState)
 {
-    if(!pausa)
+    if(!gameState->pausa)
     {
         updateSnakeData(gameState);
     }   
@@ -396,27 +394,29 @@ int main(int argc, char **argv)
 {
     T_Game_State gameState;
 
-    // Initialize with a default length of 14
-    initialize_game_state(&gameState, 14);
-
+    initialize_game_state(&gameState, SETTINGS.initialLength);
 
     if(argc > 0)
+    {
         mode = processArguments(argc,argv, mode);    
-    
+    }
 
-    initialize(&gameState);
+    initialize(&gameState);// why 2 inits?
         
     while (1)
     {
-        cycle++;
-        if(!handleKeypress())
+        gameState.cycle++;
+        if(!handleKeypress(&gameState))
+        {
             break;
+        }
+            
         refreshScreen(&gameState);        
         usleep(SETTINGS.millis * 1000); // Sleep for defined milliseconds
     }
 
-    cleanUp();
-    printGameOverScreen(foodEaten, length, cycle);
+    cleanUp(&gameState);
+    printGameOverScreen(gameState.foodEaten, gameState.length, gameState.cycle);
 
     return 0;
 }

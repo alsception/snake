@@ -11,6 +11,8 @@ void initialize_game_state(T_Game_State *state, int initial_length)
     // Screen size (default values, can be set later)
     state->rows = 0;
     state->columns = 0;
+    state->rowsPrev = 0;
+    state->columnsPrev = 0;
 
     // Positioning
     state->xOffset = 0;
@@ -21,8 +23,8 @@ void initialize_game_state(T_Game_State *state, int initial_length)
 
     // Snake tail position
     state->length = initial_length; // Initial snake length
-    state->xBody = (int *)malloc(state->length * sizeof(int));
-    state->yBody = (int *)malloc(state->length * sizeof(int));
+    state->xBody = (int *)calloc(state->length, sizeof(int));
+    state->yBody = (int *)calloc(state->length, sizeof(int));
     if (!state->xBody || !state->yBody) {
         fprintf(stderr, "Error: Memory allocation failed!\n");
         exit(EXIT_FAILURE);

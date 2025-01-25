@@ -7,6 +7,7 @@
 typedef struct 
 {   
     int millis;// = 50; //Milliseconds duration for one position change and screen refresh cycle. Choose between 1-200. Smaller is faster     
+    int initialLength;
     int bodyIncrement;// = 15;
     int maxLength;// = 1000; //If length is greater then this value-> then very interesting effects is produced on the screen
     bool cursorVisible;// = false;

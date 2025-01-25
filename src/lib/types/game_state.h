@@ -11,6 +11,8 @@ typedef struct
     // Screen size
     int rows;
     int columns;
+    int rowsPrev;
+    int columnsPrev;
 
     // Positioning    
     int xOffset;
@@ -27,10 +29,10 @@ typedef struct
     int foodY;
     
     int length;    // tested max with 1115    
-    int foodEaten;
-    
-    bool pausa;
-} T_Game_State;
+    int foodEaten;    
+    bool pausa;    
+} 
+T_Game_State;
 
 void initialize_game_state(T_Game_State *state, int initial_length);
 
