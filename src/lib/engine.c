@@ -143,33 +143,53 @@ void updateHeadPosition(T_Game_State *gameState)
         //TODO: EXTRACT FUNCITON
         switch (gameState->direction) {
             case 'L':
-                gameState->headPositionX--;
-                if (gameState->headPositionX < 1)
-                    gameState->headPositionX = gameState->columns - 3;
+                moveHeadLeft(gameState);
                 break;
 
             case 'R':
-                gameState->headPositionX++;
-                if (gameState->headPositionX > gameState->columns - 3)
-                    gameState->headPositionX = 1;
+                moveHeadRight(gameState);
                 break;
 
             case 'U':
-                gameState->headPositionY--;
-                if (gameState->headPositionY < gameState->yOffset)
-                    gameState->headPositionY = gameState->rows - 3;
+                moveHeadUp(gameState);
                 break;
 
             case 'D':
-                gameState->headPositionY++;
-                if (gameState->headPositionY > gameState->rows - gameState->yOffset - 1)
-                    gameState->headPositionY = gameState->yOffset;
+                moveHeadDown(gameState);
                 break;
 
             default:
                 break;
         }
     }
+}
+
+void moveHeadDown(T_Game_State *gameState)
+{
+    gameState->headPositionY++;
+    if (gameState->headPositionY > gameState->rows - gameState->yOffset - 1)
+        gameState->headPositionY = gameState->yOffset;
+}
+
+void moveHeadUp(T_Game_State *gameState)
+{
+    gameState->headPositionY--;
+    if (gameState->headPositionY < gameState->yOffset)
+        gameState->headPositionY = gameState->rows - 3;
+}
+
+void moveHeadRight(T_Game_State *gameState)
+{
+    gameState->headPositionX++;
+    if (gameState->headPositionX > gameState->columns - 3)
+        gameState->headPositionX = 1;
+}
+
+void moveHeadLeft(T_Game_State *gameState)
+{
+    gameState->headPositionX--;
+    if (gameState->headPositionX < 1)
+        gameState->headPositionX = gameState->columns - 3;
 }
 
 void updateBodyPosition(T_Game_State *gameState)
@@ -239,27 +259,19 @@ void autoPlay(T_Game_State *gameState)
     switch (z)
     {
     case 0:
-        gameState->headPositionX--;
-        if (gameState->headPositionX < 1)
-            gameState->headPositionX = gameState->columns - 2;
+        moveHeadLeft(gameState);
         break;
 
     case 1:
-        gameState->headPositionX++;
-        if (gameState->headPositionX > gameState->columns - 1)
-            gameState->headPositionX = 1;
+        moveHeadRight(gameState);
         break;
 
     case 2:
-        gameState->headPositionY--;
-        if (gameState->headPositionY < 1)
-            gameState->headPositionY = gameState->rows - 2;
+        moveHeadUp(gameState);
         break;
 
     case 3:
-        gameState->headPositionY++;
-        if (gameState->headPositionY > gameState->rows - 1)
-            gameState->headPositionY = 1;
+        moveHeadDown(gameState);
         break;
     
     default:
@@ -292,6 +304,6 @@ void gameOver(T_Game_State *gameState)
     disableNonCanonicalMode();
     free(gameState->yBody);
     free(gameState->xBody);
-    printGameOverScreen(gameState->foodEaten, gameState->length, gameState->cycle);
+    printGameOverScreen(gameState);
     exit(0);
 }

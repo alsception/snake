@@ -31,7 +31,7 @@ void printMaxiHeaderLine(T_Game_Mode mode, T_Game_State *gameState);
 
 void printMiniHeaderLine(T_Game_Mode mode, int length);
 
-void printGameOverScreen(int foodEaten, int length, long long int cycle);
+void printGameOverScreen(T_Game_State *gameState);
 
 void setWindowSize(T_Game_State *gameState);
 

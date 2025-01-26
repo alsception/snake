@@ -18,6 +18,14 @@ int handleKeypress(T_Game_State *gameState);
 
 void updateHeadPosition(T_Game_State *gameState);
 
+void moveHeadDown(T_Game_State *gameState);
+
+void moveHeadUp(T_Game_State *gameState);
+
+void moveHeadRight(T_Game_State *gameState);
+
+void moveHeadLeft(T_Game_State *gameState);
+
 void updateBodyPosition(T_Game_State *gameState);
 
 bool detectBodyCollision(T_Game_State *gameState);

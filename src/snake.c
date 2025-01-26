@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 
     cleanUp(&gameState);
 
-    printGameOverScreen(gameState.foodEaten, gameState.length, gameState.cycle);
+    printGameOverScreen(&gameState);
 
     return 0;
 }

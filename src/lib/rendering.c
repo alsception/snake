@@ -260,12 +260,12 @@ void printMiniHeaderLine(T_Game_Mode mode, int length)
         printf("\r" ANSI_COLOR_YELLOW "$: " ANSI_COLOR_BLUE "%d" ANSI_COLOR_RESET, length);
 } 
 
-void printGameOverScreen(int foodEaten, int length, long long int cycle)
+void printGameOverScreen(T_Game_State *gameState)
 {
     printf("\nGame Over\n");
-    printf("Food eaten: %d \n", foodEaten);
-    printf("Length achieved: %d \n", length);
-    printf("Cycles played: %lld \n", cycle);
+    printf("Food eaten: %d \n", gameState->foodEaten);
+    printf("Length achieved: %d \n", gameState->length);
+    printf("Cycles played: %lld \n", gameState->cycle);
     printf("\e[?25h"); // Reenable cursor
 }
 
