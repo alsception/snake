@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 // Function to initialize the game state
-void initialize_game_state(T_Game_State *state, int initial_length) 
+void init_game_state(T_Game_State *state, int initial_length) 
 {
     state->cycle = 0;
 
@@ -25,7 +25,9 @@ void initialize_game_state(T_Game_State *state, int initial_length)
     state->length = initial_length; // Initial snake length
     state->xBody = (int *)calloc(state->length, sizeof(int));
     state->yBody = (int *)calloc(state->length, sizeof(int));
-    if (!state->xBody || !state->yBody) {
+
+    if (!state->xBody || !state->yBody) 
+    {
         fprintf(stderr, "Error: Memory allocation failed!\n");
         exit(EXIT_FAILURE);
     }
@@ -43,6 +45,9 @@ void initialize_game_state(T_Game_State *state, int initial_length)
     // Other game state variables
     state->foodEaten = 0;
     state->pausa = false;
+
+    state->direction = RIGHT;
+    state->mode = NORMAL;
 }
 
 // Function to free allocated memory

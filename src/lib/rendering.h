@@ -7,7 +7,7 @@
 
 // Function declarations
 
-void render(T_Game_State *gameState, T_Game_Mode mode);
+void render(T_Game_State *gameState);
 
 int checkBody(int x, int y, int *xBody, int *yBody, int length);
 

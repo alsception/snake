@@ -2,6 +2,8 @@
 #define GAME_STATE_H
 
 #include <stdbool.h>
+#include "game_direction.h"
+#include "game_mode.h"
 
 //STATE VARIABLES
 typedef struct 
@@ -31,10 +33,13 @@ typedef struct
     int length;    // tested max with 1115    
     int foodEaten;    
     bool pausa;    
+
+    T_Game_Direction direction;
+    T_Game_Mode mode;
 } 
 T_Game_State;
 
-void initialize_game_state(T_Game_State *state, int initial_length);
+void init_game_state(T_Game_State *state, int initial_length);
 
 void cleanup_game_state(T_Game_State *state);
 

@@ -60,6 +60,7 @@ char getRandomChar()
 
 T_Game_Mode processArguments(int argc, char **argv, T_Game_Mode mode)
 {
+    printf("Processing arguments...\n");
     char gm[] = "god-mode";
     char le[] = "lay-eggs";
     char at[] = "auto";

@@ -6,7 +6,7 @@ CFLAGS = -Wall -g
 TARGET = bin/snake
 
 # Object files
-OBJS = src/snake.o src/lib/utils.o src/lib/rendering.o src/lib/types/game_mode.o src/lib/types/game_settings.o src/lib/types/game_state.o
+OBJS = src/snake.o src/lib/utils.o src/lib/rendering.o src/lib/types/game_mode.o src/lib/types/game_settings.o src/lib/types/game_state.o src/lib/engine.o
 
 # Default target
 $(TARGET): $(OBJS)
@@ -20,6 +20,9 @@ src/lib/utils.o: src/lib/utils.c src/lib/utils.h src/lib/types/game_mode.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 src/lib/rendering.o: src/lib/rendering.c src/lib/rendering.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+src/lib/engine.o: src/lib/engine.c src/lib/engine.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 src/lib/types/game_mode.o: src/lib/types/game_mode.c src/lib/types/game_mode.h

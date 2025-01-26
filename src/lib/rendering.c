@@ -303,11 +303,11 @@ void resetCursorPosition(T_Game_State *gameState)
     } 
 }
 
-void render(T_Game_State *gameState, T_Game_Mode mode)
+void render(T_Game_State *gameState)
 {
     resetCursorPosition(gameState);    
     printHeaderLine(gameState, SETTINGS.millis);        
-    printContent(gameState, is_mode_active( mode, MATRIX )); 
+    printContent(gameState, is_mode_active( gameState->mode, MATRIX )); 
     
     if(!SETTINGS.cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
 }
