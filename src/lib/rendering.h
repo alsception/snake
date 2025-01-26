@@ -29,6 +29,8 @@ void printHeaderLine(T_Game_State *gameState);
 
 void printMaxiHeaderLine(T_Game_State *gameState);
 
+void printHeaderCell(char* title, int value, const char* color1);
+
 void printMiniHeaderLine(T_Game_Mode mode, int length, int foodEaten);
 
 void printGameOverScreen(T_Game_State *gameState);

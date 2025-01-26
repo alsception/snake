@@ -251,31 +251,33 @@ void printHeaderLine(T_Game_State *gameState)
     }
     else
     {    
-        //TODO: IF HEAD X OR Y EQUALS TO FOODS -> THEN COLOR IN GREEN
+        
         printMaxiHeaderLine(gameState);
     }
 }
 
 void printMaxiHeaderLine(T_Game_State *gameState)
 {
-    //TODO: add length after food
     const char *color = is_mode_active(gameState->mode, MATRIX) ? ANSI_COLOR_GREEN : ANSI_COLOR_BLUE;
-    printf(
-        "\r%s"
-        "Terminal size: "
-        "y:%d rows | "
-        "x:%d columns | "
-        "headPositionX: %d | "
-        "headPositionY: %d | "
-        "refresh rate: %d | "
-        "foodX: %d | "
-        "foodY: %d | "
-        "length: %s%d "
-        "    " // Empty space is needed
-        ANSI_COLOR_RESET,
-        color,  gameState->rows,  gameState->columns,  
-        gameState->headPositionX,  gameState->headPositionY, 
-        SETTINGS.millis,  gameState->foodX,  gameState->foodY, ANSI_COLOR_HIGREEN, gameState->length);
+
+    //TODO: IF HEAD X OR Y EQUALS TO FOODS -> THEN COLOR IN GREEN
+
+    printf("\r");
+    printHeaderCell("XRows", gameState->rows, color);
+    printHeaderCell("YColumns",gameState->columns, color);
+    printHeaderCell("XHead",gameState->headPositionX, color);
+    printHeaderCell("YHead",gameState->headPositionY, color);
+    printHeaderCell("XFood",gameState->foodX, color);
+    printHeaderCell("YFood",gameState->foodY, color);
+    printHeaderCell("Millis",SETTINGS.millis, color);
+    printHeaderCell("L",gameState->length, color);
+    printHeaderCell("F",gameState->foodEaten, color);
+    printf("    ");// Empty space is needed
+}
+
+void printHeaderCell(char* title, int value, const char* color1)
+{
+    printf( "%s%s: " ANSI_COLOR_RESET ANSI_COLOR_HIGREEN "%d " ANSI_COLOR_RESET, color1, title, value);
 }
 
 void printMiniHeaderLine(T_Game_Mode mode, int length, int foodEaten)

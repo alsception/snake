@@ -36,10 +36,10 @@ int main(int argc, char **argv)
             
         if( !gameState.pausa )
         {
-            updateSnakeModel(&gameState);
+            updateSnakeModel(&gameState); //Only snake model calculation will be paused 
         }   
 
-        render(&gameState);     
+        render(&gameState);//Render must go on even when paused     
 
         usleep(SETTINGS.millis * 1000); // Sleep for defined milliseconds
     }
