@@ -263,15 +263,15 @@ void printMaxiHeaderLine(T_Game_State *gameState)
     //TODO: IF HEAD X OR Y EQUALS TO FOODS -> THEN COLOR IN GREEN
 
     printf("\r");
-    printHeaderCell("XRows", gameState->rows, color);
-    printHeaderCell("YColumns",gameState->columns, color);
-    printHeaderCell("XHead",gameState->headPositionX, color);
-    printHeaderCell("YHead",gameState->headPositionY, color);
-    printHeaderCell("XFood",gameState->foodX, color);
-    printHeaderCell("YFood",gameState->foodY, color);
+    printHeaderCell("Rows(X)", gameState->rows, color);
+    printHeaderCell("Columns(Y)",gameState->columns, color);
+    printHeaderCell("HeadX",gameState->headPositionX, color);
+    printHeaderCell("HeadY",gameState->headPositionY, color);
+    printHeaderCell("FoodX",gameState->foodX, color);
+    printHeaderCell("FoodY",gameState->foodY, color);
     printHeaderCell("Millis",SETTINGS.millis, color);
-    printHeaderCell("L",gameState->length, color);
-    printHeaderCell("F",gameState->foodEaten, color);
+    printHeaderCell("Food",gameState->foodEaten, color);
+    printHeaderCell("Length",gameState->length, color);    
     printf("    ");// Empty space is needed
 }
 
