@@ -25,11 +25,11 @@ void printEmptyContent(int x, int y, int width, int depth, bool matrixMode);
 
 void printContent(T_Game_State *gameState, bool matrixMode);
 
-void printHeaderLine(T_Game_State *gameState, T_Game_Mode mode);
+void printHeaderLine(T_Game_State *gameState);
 
-void printMaxiHeaderLine(T_Game_Mode mode, T_Game_State *gameState);
+void printMaxiHeaderLine(T_Game_State *gameState);
 
-void printMiniHeaderLine(T_Game_Mode mode, int length);
+void printMiniHeaderLine(T_Game_Mode mode, int length, int foodEaten);
 
 void printGameOverScreen(T_Game_State *gameState);
 

@@ -27,13 +27,19 @@ void printSnakeBody(int bodyIndex, int length, int cycle, bool matrixMode)
         // We will add a little bit of styling to the snake, based on body's element and cycle
         if (bodyIndex > length - 10)
         {
-            // tail //◘ •
             if(bodyIndex == length-2)
+            {
                 printf(ANSI_COLOR_GREEN "◘" ANSI_COLOR_RESET);
+            }
             else if (bodyIndex % 2)
+            {
                 printf(ANSI_COLOR_GREEN "•" ANSI_COLOR_RESET);
-            else
+            } 
+            else 
+            {
                 printf(ANSI_COLOR_CYAN "•" ANSI_COLOR_RESET);
+            }
+                
         }
         else
         {
@@ -76,9 +82,13 @@ void printSnakeHead(int cycle, bool matrixMode)
     else
     {
         if ( cycle % 2 )
+        {
             printf( ANSI_COLOR_GREEN "X" ANSI_COLOR_RESET );
+        }
         else
+        {
             printf( ANSI_COLOR_CYAN "@" ANSI_COLOR_RESET );
+        }
     }    
 }
 
@@ -110,7 +120,6 @@ void printEmptyContent(int x, int y, int width, int depth, bool matrixMode)
         if (y == 1 || y == depth || x == 0 || x == width)
         {
             char c = '*';
-            //char c = getRandomChar();
             printf("%c", c);
         }
         else
@@ -123,16 +132,25 @@ void printEmptyContent(int x, int y, int width, int depth, bool matrixMode)
         if (y == 1 || y == depth)
         {
             if (x == 0 || x == width)
+            {
                 printf("+");
+            }
             else
+            {
                 printf("=");
+            }
+                
         }
         else
         {
             if (x == 0 || x == width)
+            {
                 printf("|");
+            }
             else
+            {
                 printf(" ");
+            }
         }
     }
 }
@@ -141,18 +159,27 @@ void printEmptyContent(int x, int y, int width, int depth, bool matrixMode)
 bool checkFood(int x, int y, int foodX, int foodY)
 {
     if (x == foodX && y == foodY)
+    {
         return true;
+    }
     else
+    { 
         return false;
+    }
 }
 
 // Return true if snake head is present at given x,y position
 bool checkHead(int x, int y, int headPositionX, int headPositionY)
 {
     if (x == headPositionX && y == headPositionY)
+    {
         return true;
+    }
     else
+    {
         return false;
+    }
+        
 }
 
 // Return index of snake's body element if present at given x,y position
@@ -215,24 +242,24 @@ void printContent(T_Game_State *gameState, bool matrixMode)
 }
 
 // Upper line with informations
-void printHeaderLine(T_Game_State *gameState, T_Game_Mode mode)
+void printHeaderLine(T_Game_State *gameState)
 {       
     if(gameState->columns < 155)
     {
         //Make it responsive :)
-        printMiniHeaderLine(mode, gameState->length);
+        printMiniHeaderLine(gameState->mode, gameState->length, gameState->foodEaten);
     }
     else
     {    
         //TODO: IF HEAD X OR Y EQUALS TO FOODS -> THEN COLOR IN GREEN
-        printMaxiHeaderLine(mode, gameState);
+        printMaxiHeaderLine(gameState);
     }
 }
 
-void printMaxiHeaderLine(T_Game_Mode mode, T_Game_State *gameState)
+void printMaxiHeaderLine(T_Game_State *gameState)
 {
     //TODO: add length after food
-    const char *color = is_mode_active(mode, MATRIX) ? ANSI_COLOR_GREEN : ANSI_COLOR_BLUE;
+    const char *color = is_mode_active(gameState->mode, MATRIX) ? ANSI_COLOR_GREEN : ANSI_COLOR_BLUE;
     printf(
         "\r%s"
         "Terminal size: "
@@ -251,13 +278,32 @@ void printMaxiHeaderLine(T_Game_Mode mode, T_Game_State *gameState)
         SETTINGS.millis,  gameState->foodX,  gameState->foodY, ANSI_COLOR_HIGREEN, gameState->length);
 }
 
-void printMiniHeaderLine(T_Game_Mode mode, int length)
+void printMiniHeaderLine(T_Game_Mode mode, int length, int foodEaten)
 {
-    //TODO: add length after food
     if (is_mode_active(mode, MATRIX))
-        printf("\r" ANSI_COLOR_GREEN "$: " ANSI_COLOR_HIGREEN "%d" ANSI_COLOR_RESET, length);
+    {
+        printf(
+            "\r" 
+            ANSI_COLOR_GREEN "Θ: "  
+            ANSI_COLOR_HIGREEN "%d " 
+            ANSI_COLOR_RESET
+            ANSI_COLOR_GREEN "$: "  
+            ANSI_COLOR_HIGREEN "%d " 
+            ANSI_COLOR_RESET,
+            foodEaten, length);
+    }
     else
-        printf("\r" ANSI_COLOR_YELLOW "$: " ANSI_COLOR_BLUE "%d" ANSI_COLOR_RESET, length);
+    {
+        printf(
+            "\r" 
+            ANSI_COLOR_BLUE "Θ: "  
+            ANSI_COLOR_HIGREEN "%d " 
+            ANSI_COLOR_RESET
+            ANSI_COLOR_BLUE "$: "  
+            ANSI_COLOR_HIGREEN "%d " 
+            ANSI_COLOR_RESET,
+            foodEaten, length);
+    }        
 } 
 
 void printGameOverScreen(T_Game_State *gameState)
@@ -306,7 +352,7 @@ void resetCursorPosition(T_Game_State *gameState)
 void render(T_Game_State *gameState)
 {
     resetCursorPosition(gameState);    
-    printHeaderLine(gameState, SETTINGS.millis);        
+    printHeaderLine(gameState);        
     printContent(gameState, is_mode_active( gameState->mode, MATRIX )); 
     
     if(!SETTINGS.cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
