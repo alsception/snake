@@ -13,61 +13,13 @@
 
 /* Function implementations */
 
-void printSnakeBody(int bodyIndex, int length, int cycle, bool matrixMode)
+void render(T_Game_State *gameState)
 {
-    if(matrixMode)
-    {
-        char c = getRandomChar();
-        printf(ANSI_COLOR_GREEN );
-        printf("%c", c);  
-        printf(ANSI_COLOR_RESET);
-    }
-    else
-    {    
-        // We will add a little bit of styling to the snake, based on body's element and cycle
-        if (bodyIndex > length - 10)
-        {
-            if(bodyIndex == length-2)
-            {
-                printf(ANSI_COLOR_GREEN "◘" ANSI_COLOR_RESET);
-            }
-            else if (bodyIndex % 2)
-            {
-                printf(ANSI_COLOR_GREEN "•" ANSI_COLOR_RESET);
-            } 
-            else 
-            {
-                printf(ANSI_COLOR_CYAN "•" ANSI_COLOR_RESET);
-            }
-                
-        }
-        else
-        {
-            //This means alternating + and ♦ elements with flashing colors
-            if (bodyIndex % 2)
-            {
-                if (cycle % 2)
-                {
-                    printf(ANSI_COLOR_GREEN "+" ANSI_COLOR_RESET);
-                }
-                else
-                {
-                    printf(ANSI_COLOR_CYAN "+" ANSI_COLOR_RESET);
-                }
-            }
-            else
-            {
-                if (cycle % 2)
-                {
-                    printf(ANSI_COLOR_CYAN "♦" ANSI_COLOR_RESET);
-                }
-                else
-                {
-                    printf(ANSI_COLOR_GREEN "♦" ANSI_COLOR_RESET);
-                }
-            }
-        }   
-    }
+    resetCursorPosition(gameState);    
+    printHeaderLine(gameState);        
+    printContent(gameState, is_mode_active( gameState->mode, MATRIX )); 
+    
+    if(!SETTINGS.cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
 }
 
 void printSnakeHead(int cycle, bool matrixMode)
@@ -92,23 +44,69 @@ void printSnakeHead(int cycle, bool matrixMode)
     }    
 }
 
+void printSnakeBody(int bodyIndex, int length, int cycle, bool matrixMode)
+{
+    if(matrixMode)
+    {
+        char c = getRandomChar();
+        printf(ANSI_COLOR_GREEN );
+        printf("%c", c);  
+        printf(ANSI_COLOR_RESET);
+    }
+    else
+    {    
+        // We will add a little bit of styling to the snake, based on body's element and cycle
+        if (bodyIndex > length - 10)
+        {
+            if(bodyIndex == length-2)
+            {
+                printf(ANSI_COLOR_GREEN "◘" ANSI_COLOR_RESET);
+            }
+            else if (bodyIndex % 3)
+            {
+                printf(ANSI_COLOR_GREEN "•" ANSI_COLOR_RESET);
+            } 
+            else 
+            {
+                printf(ANSI_COLOR_CYAN "•" ANSI_COLOR_RESET);
+            }
+                
+        }
+        else
+        {
+            //This means alternating + and ♦ elements with flashing colors
+            if (bodyIndex % 3)
+            {
+                 //░
+                    printf(ANSI_COLOR_CYAN "▓" ANSI_COLOR_RESET);
+               
+            }
+            else
+            {
+               
+                
+                    printf(ANSI_COLOR_HIGREEN "░" ANSI_COLOR_RESET);
+               
+            }
+        }   
+    }
+}
+
 void printFood(int cycle, bool matrixMode)
 {
-    // Food will be flashing dollar sign (everybody likes dollar sign)
+    
     const char *ANSI_COLOR_FOOD;
     
     if( matrixMode )
     {
+        //Food is red pill
         ANSI_COLOR_FOOD = ANSI_COLOR_RED;
         printf( "%sΘ%s", ANSI_COLOR_FOOD,ANSI_COLOR_RESET );
     }
     else
     {
-        if( cycle % 2 )
-            ANSI_COLOR_FOOD = ANSI_COLOR_RED;
-        else
-            ANSI_COLOR_FOOD = ANSI_COLOR_YELLOW;
-
+        // Food will be dollar sign (everybody likes dollar sign)
+        ANSI_COLOR_FOOD = ANSI_COLOR_RED;       
         printf( "%s$%s", ANSI_COLOR_FOOD, ANSI_COLOR_RESET );
     }        
 }
@@ -250,8 +248,7 @@ void printHeaderLine(T_Game_State *gameState)
         printMiniHeaderLine(gameState->mode, gameState->length, gameState->foodEaten);
     }
     else
-    {    
-        
+    {   
         printMaxiHeaderLine(gameState);
     }
 }
@@ -349,13 +346,4 @@ void resetCursorPosition(T_Game_State *gameState)
     {
         printf("\033[A");
     } 
-}
-
-void render(T_Game_State *gameState)
-{
-    resetCursorPosition(gameState);    
-    printHeaderLine(gameState);        
-    printContent(gameState, is_mode_active( gameState->mode, MATRIX )); 
-    
-    if(!SETTINGS.cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
 }

@@ -9,17 +9,17 @@
 
 void render(T_Game_State *gameState);
 
+void printSnakeHead(int cycle, bool matrixMode);
+
+void printSnakeBody(int bodyIndex, int length, int cycle, bool matrixMode);
+
+void printFood(int cycle, bool matrixMode);
+
 int checkBody(int x, int y, int *xBody, int *yBody, int length);
 
 bool checkFood(int x, int y, int foodX, int foodY);
 
 bool checkHead(int x, int y, int headPositionX, int headPositionY);
-
-void printSnakeBody(int bodyIndex, int length, int cycle, bool matrixMode);
-
-void printSnakeHead(int cycle, bool matrixMode);
-
-void printFood(int cycle, bool matrixMode);
 
 void printEmptyContent(int x, int y, int width, int depth, bool matrixMode);
 
