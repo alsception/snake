@@ -30,7 +30,7 @@ void layEgg(T_Game_State *gameState);
 
 void autoPlay(T_Game_State *gameState);
 
-void updateSnakeData(T_Game_State *gameState);
+void updateSnakeModel(T_Game_State *gameState);
 
 void gameOver(T_Game_State *gameState);
 

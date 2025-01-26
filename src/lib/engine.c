@@ -267,7 +267,7 @@ void autoPlay(T_Game_State *gameState)
     }
 }
 
-void updateSnakeData(T_Game_State *gameState)
+void updateSnakeModel(T_Game_State *gameState)
 {
     // Update body before head, because it must follow the heads previous position
     updateBodyPosition(gameState);

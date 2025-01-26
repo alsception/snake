@@ -1,13 +1,5 @@
 //Standard libraries
-#include <stdio.h>
 #include <unistd.h>
-#include <sys/ioctl.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <termios.h>
-#include <fcntl.h>
-#include <stdbool.h> // Include this header to use boolean, true, and false
-#include <string.h>
 
 //Our libraries
 #include "lib/types/game_mode.h"
@@ -28,28 +20,32 @@ int main(int argc, char **argv)
 
     if(argc > 0)
     {
-        gameState.mode = processArguments(argc,argv, gameState.mode);    
+        gameState.mode = processArguments(argc, argv, gameState.mode);    
     }
 
-    finalizeInitialization(&gameState);// This is neccessary, but maybe change name?
+    finalizeInitialization(&gameState);
     
     while (1)
     {
         gameState.cycle++;
-        if(!handleKeypress(&gameState))
+
+        if( !handleKeypress(&gameState) )
         {
             break;
         }
             
-        if(!gameState.pausa)
+        if( !gameState.pausa )
         {
-            updateSnakeData(&gameState);
+            updateSnakeModel(&gameState);
         }   
-        render(&gameState);        
+
+        render(&gameState);     
+
         usleep(SETTINGS.millis * 1000); // Sleep for defined milliseconds
     }
 
     cleanUp(&gameState);
+
     printGameOverScreen(gameState.foodEaten, gameState.length, gameState.cycle);
 
     return 0;
