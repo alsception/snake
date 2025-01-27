@@ -11,8 +11,8 @@ Learn more about the game concept: [Snake (video game genre)](https://en.wikiped
 - To quit press 'Q'
 
 **Files:**  
-- `snake` — Executable file.  
-- `snake.c` — Source code.  
+- `bin/snake` — Executable file.  
+- `src/snake.c` — Main source code file.  
 
 **How to Run:**  
 1. Ensure the executable permission is set:  
@@ -25,11 +25,7 @@ Learn more about the game concept: [Snake (video game genre)](https://en.wikiped
    ```  
 
 **How to Build:**  
-Compile the source code using GCC [old]:  
-```bash
-gcc snake.c -o snake
-```  
-Using Makefile:  
+Compile the source code using Makefile:  
 ```bash
 make
 ``` 
@@ -56,4 +52,4 @@ To clean: make clean
 --- 
 
 Preview
-![image](https://github.com/user-attachments/assets/dea7fdbc-527a-4447-b800-996743a1a47b)
+![image](other/snake2-ezgif.com-crop.gif)
