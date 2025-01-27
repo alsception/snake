@@ -22,73 +22,168 @@ void render(T_Game_State *gameState)
     if(!SETTINGS.cursorVisible) printf("\e[?25l"); // Remove cursor and flashing
 }
 
+void printContent(T_Game_State *gameState, bool matrixMode)
+{
+    int depth = gameState->rows - gameState->yOffset;
+    int width = gameState->columns - 2;
+    int bodyIndex = -1;
+    bool hasHead = false;
+    bool hasFood = false;
+
+    //Screen printing is done line by line starting from top
+    for (int y = 0; y <= depth; y++)
+    {     
+        printf("\n"); // Start at new line
+        for (int x = 0; x <= width; x++)
+        {
+            if (y > 0)  //Not sure why this condition?
+            {
+                // 1. Check if the screen cell contains head,food or body
+                hasHead = checkHead( x, y, gameState->headPositionX, gameState->headPositionY );              
+                hasFood = checkFood( x, y, gameState->foodX, gameState->foodY );
+                bodyIndex = checkBody( x, y, gameState->xBody, gameState->yBody, gameState->length );    
+
+                // 2. Print appropriate element
+                if ( hasHead )
+                {                    
+                    printSnakeHead( gameState->cycle, matrixMode );
+                }                
+                else if ( hasFood )
+                {
+                    printFood(gameState->cycle, matrixMode);
+                }                
+                else if ( bodyIndex >= 0 )
+                {
+                    printSnakeBody( bodyIndex, gameState->length, gameState->cycle, matrixMode, gameState);
+                }
+                else
+                {
+                    printEmptyContent( x, y, width, depth, matrixMode );
+                }
+            }
+        }
+        
+    }    
+    fflush(stdout);
+}
+
 void printSnakeHead(int cycle, bool matrixMode)
 {
     if( matrixMode )
     {
-        char c = getRandomChar();
-        printf( ANSI_COLOR_HIGREEN );
-        printf( "%c", c );  
-        printf( ANSI_COLOR_RESET );
+        printRainDrop();
     }
     else
     {
         if ( cycle % 2 )
         {
-            printf( ANSI_COLOR_GREEN "X" ANSI_COLOR_RESET );
+            printf( ANSI_COLOR_HIGREEN "X" ANSI_COLOR_RESET );
         }
         else
         {
             printf( ANSI_COLOR_CYAN "@" ANSI_COLOR_RESET );
         }
-    }    
+    }
 }
 
-void printSnakeBody(int bodyIndex, int length, int cycle, bool matrixMode)
+void printRainDrop()
+{
+    char c = getRandomChar();
+    printf(ANSI_COLOR_HIGREEN);
+    printf("%c", c);
+    printf(ANSI_COLOR_RESET);
+}
+
+void printSnakeBody(int bodyIndex, int length, int cycle, bool matrixMode, T_Game_State *gameState)
 {
     if(matrixMode)
     {
-        char c = getRandomChar();
-        printf(ANSI_COLOR_GREEN );
-        printf("%c", c);  
-        printf(ANSI_COLOR_RESET);
+        printRandomGreenChar();
     }
     else
     {    
         // We will add a little bit of styling to the snake, based on body's element and cycle
         if (bodyIndex > length - 10)
         {
-            if(bodyIndex == length-2)
-            {
-                printf(ANSI_COLOR_GREEN "◘" ANSI_COLOR_RESET);
-            }
-            else if (bodyIndex % 3)
-            {
-                printf(ANSI_COLOR_GREEN "•" ANSI_COLOR_RESET);
-            } 
-            else 
-            {
-                printf(ANSI_COLOR_CYAN "•" ANSI_COLOR_RESET);
-            }
-                
+            printEndTail(bodyIndex, length);
         }
         else
         {
-            //This means alternating + and ♦ elements with flashing colors
-            if (bodyIndex % 3)
+            if(gameState->timeToFlash > 0)
             {
-                 //░
-                    printf(ANSI_COLOR_CYAN "▓" ANSI_COLOR_RESET);
-               
+                /////////start flashing part
+                flash(bodyIndex, cycle);
+                /////////end flashing part
             }
             else
             {
-               
-                
-                    printf(ANSI_COLOR_HIGREEN "░" ANSI_COLOR_RESET);
-               
+                //Snake will be stripped
+                printNormalBodySegment(bodyIndex);
             }
+            
         }   
+    }
+}
+
+void printRandomGreenChar()
+{
+    char c = getRandomChar();
+    printf(ANSI_COLOR_GREEN);
+    printf("%c", c);
+    printf(ANSI_COLOR_RESET);
+}
+
+void printNormalBodySegment(int bodyIndex)
+{
+    if (bodyIndex % 3)
+    {
+        printf(ANSI_COLOR_CYAN "▓" ANSI_COLOR_RESET);
+    }
+    else
+    {
+        printf(ANSI_COLOR_HIGREEN "░" ANSI_COLOR_RESET);
+    }
+}
+
+void printEndTail(int bodyIndex, int length)
+{
+    if (bodyIndex == length - 2)
+    {
+        printf(ANSI_COLOR_GREEN "◘" ANSI_COLOR_RESET);
+    }
+    else if (bodyIndex % 3)
+    {
+        printf(ANSI_COLOR_GREEN "•" ANSI_COLOR_RESET);
+    }
+    else
+    {
+        printf(ANSI_COLOR_CYAN "•" ANSI_COLOR_RESET);
+    }
+}
+
+void flash(int bodyIndex, int cycle)
+{
+    if (bodyIndex % 3)
+    {
+        if (cycle % 2)
+        {
+            printf(ANSI_COLOR_HIGREEN "+" ANSI_COLOR_RESET);
+        }
+        else
+        {
+            printf(ANSI_COLOR_BLUE "+" ANSI_COLOR_RESET);
+        }
+    }
+    else
+    {
+        if (cycle % 2)
+        {
+            printf(ANSI_COLOR_YELLOW "▓" ANSI_COLOR_RESET);
+        }
+        else
+        {
+            printf(ANSI_COLOR_RED "♦" ANSI_COLOR_RESET);
+        }
     }
 }
 
@@ -192,51 +287,6 @@ int checkBody(int x, int y, int *xBody, int *yBody, int length)
         }
     }
     return -1;
-}
-
-void printContent(T_Game_State *gameState, bool matrixMode)
-{
-    int depth = gameState->rows - gameState->yOffset;
-    int width = gameState->columns - 2;
-    int bodyIndex = -1;
-    bool hasHead = false;
-    bool hasFood = false;
-
-    //Screen printing is done line by line starting from top
-    for (int y = 0; y <= depth; y++)
-    {     
-        printf("\n"); // Start at new line
-        for (int x = 0; x <= width; x++)
-        {
-            if (y > 0)  //Not sure why this condition?
-            {
-                // 1. Check if the screen cell contains head,food or body
-                hasHead = checkHead( x, y, gameState->headPositionX, gameState->headPositionY );              
-                hasFood = checkFood( x, y, gameState->foodX, gameState->foodY );
-                bodyIndex = checkBody( x, y, gameState->xBody, gameState->yBody, gameState->length );    
-
-                // 2. Print appropriate element
-                if ( hasHead )
-                {                    
-                    printSnakeHead( gameState->cycle, matrixMode );
-                }                
-                else if ( hasFood )
-                {
-                    printFood(gameState->cycle, matrixMode);
-                }                
-                else if ( bodyIndex >= 0 )
-                {
-                    printSnakeBody( bodyIndex, gameState->length, gameState->cycle, matrixMode);
-                }
-                else
-                {
-                    printEmptyContent( x, y, width, depth, matrixMode );
-                }
-            }
-        }
-        
-    }    
-    fflush(stdout);
 }
 
 // Upper line with informations

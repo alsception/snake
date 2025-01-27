@@ -12,5 +12,6 @@ const T_Game_Settings SETTINGS =
     .initialLength = 14,
     .bodyIncrement = 15,
     .maxLength = 1000, //If length is greater then this value-> then very interesting effects is produced on the screen
+    .timeToFlashDuration = 6,
     .cursorVisible = false
 };

@@ -4,57 +4,59 @@
 #include <stdlib.h>
 
 // Function to initialize the game state
-void init_game_state(T_Game_State *state, int initial_length) 
+void init_game_state(T_Game_State *gameState, int initial_length) 
 {
-    state->cycle = 0;
+    gameState->cycle = 0;
 
     // Screen size (default values, can be set later)
-    state->rows = 0;
-    state->columns = 0;
-    state->rowsPrev = 0;
-    state->columnsPrev = 0;
+    gameState->rows = 0;
+    gameState->columns = 0;
+    gameState->rowsPrev = 0;
+    gameState->columnsPrev = 0;
 
     // Positioning
-    state->xOffset = 0;
-    state->yOffset = 2;
+    gameState->xOffset = 0;
+    gameState->yOffset = 2;
 
-    state->headPositionX = 21;
-    state->headPositionY = 22;
+    gameState->headPositionX = 21;
+    gameState->headPositionY = 22;
 
     // Snake tail position
-    state->length = initial_length; // Initial snake length
-    state->xBody = (int *)calloc(state->length, sizeof(int));
-    state->yBody = (int *)calloc(state->length, sizeof(int));
+    gameState->length = initial_length; // Initial snake length
+    gameState->xBody = (int *)calloc(gameState->length, sizeof(int));
+    gameState->yBody = (int *)calloc(gameState->length, sizeof(int));
 
-    if (!state->xBody || !state->yBody) 
+    if (!gameState->xBody || !gameState->yBody) 
     {
         fprintf(stderr, "Error: Memory allocation failed!\n");
         exit(EXIT_FAILURE);
     }
 
     // Initialize tail positions (example: line from head backward)
-    for (int i = 0; i < state->length; ++i) {
-        state->xBody[i] = state->headPositionX - i; // Horizontal snake body
-        state->yBody[i] = state->headPositionY;    // Same row
+    for (int i = 0; i < gameState->length; ++i) {
+        gameState->xBody[i] = gameState->headPositionX - i; // Horizontal snake body
+        gameState->yBody[i] = gameState->headPositionY;    // Same row
     }
 
     // Food position
-    state->foodX = 0;
-    state->foodY = 0;
+    gameState->foodX = 0;
+    gameState->foodY = 0;
 
-    // Other game state variables
-    state->foodEaten = 0;
-    state->pausa = false;
+    // Other game gameState variables
+    gameState->foodEaten = 0;
+    gameState->pausa = false;
 
-    state->direction = RIGHT;
-    state->mode = NORMAL;
+    gameState->direction = RIGHT;
+    gameState->mode = NORMAL;
+
+    gameState->timeToFlash = 0;
 }
 
 // Function to free allocated memory
-void cleanup_game_state(T_Game_State *state) 
+void cleanup_game_state(T_Game_State *gameState) 
 {
-    free(state->xBody);
-    free(state->yBody);
-    state->xBody = NULL;
-    state->yBody = NULL;
+    free(gameState->xBody);
+    free(gameState->yBody);
+    gameState->xBody = NULL;
+    gameState->yBody = NULL;
 }

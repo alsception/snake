@@ -2,15 +2,9 @@
 #include <unistd.h>
 
 //Our libraries
-#include "lib/types/game_mode.h"
-#include "lib/types/game_direction.h"
-#include "lib/types/game_settings.h"
-#include "lib/types/game_state.h"
-#include "lib/types/game_mode.h"
-#include "lib/types/colors.h"
-#include "lib/utils.h"
 #include "lib/engine.h"
 #include "lib/rendering.h"
+#include "lib/utils.h"
 
 int main(int argc, char **argv)
 {   
@@ -36,7 +30,7 @@ int main(int argc, char **argv)
             
         if( !gameState.pausa )
         {
-            updateSnakeModel(&gameState); //Only snake model calculation will be paused 
+            updateGameState(&gameState); //Only snake model calculation will be paused 
         }   
 
         render(&gameState);//Render must go on even when paused     

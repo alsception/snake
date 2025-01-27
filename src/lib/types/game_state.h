@@ -34,6 +34,8 @@ typedef struct
     int foodEaten;    
     bool pausa;    
 
+    int timeToFlash;//How many cycles will the snake flash (for example flashing effect after eating)
+
     T_Game_Direction direction;
     T_Game_Mode mode;
 } 

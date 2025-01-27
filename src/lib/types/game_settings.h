@@ -10,6 +10,7 @@ typedef struct
     int initialLength;
     int bodyIncrement;// = 15;
     int maxLength;// = 1000; //If length is greater then this value-> then very interesting effects is produced on the screen
+    int timeToFlashDuration;
     bool cursorVisible;// = false;
     //todo: add starting length
 } T_Game_Settings;

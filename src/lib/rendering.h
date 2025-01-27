@@ -9,9 +9,21 @@
 
 void render(T_Game_State *gameState);
 
+void printContent(T_Game_State *gameState, bool matrixMode);
+
 void printSnakeHead(int cycle, bool matrixMode);
 
-void printSnakeBody(int bodyIndex, int length, int cycle, bool matrixMode);
+void printRainDrop();
+
+void printSnakeBody(int bodyIndex, int length, int cycle, bool matrixMode, T_Game_State *gameState);
+
+void printRandomGreenChar();
+
+void printNormalBodySegment(int bodyIndex);
+
+void printEndTail(int bodyIndex, int length);
+
+void flash(int bodyIndex, int cycle);
 
 void printFood(int cycle, bool matrixMode);
 
@@ -22,8 +34,6 @@ bool checkFood(int x, int y, int foodX, int foodY);
 bool checkHead(int x, int y, int headPositionX, int headPositionY);
 
 void printEmptyContent(int x, int y, int width, int depth, bool matrixMode);
-
-void printContent(T_Game_State *gameState, bool matrixMode);
 
 void printHeaderLine(T_Game_State *gameState);
 

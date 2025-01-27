@@ -279,8 +279,12 @@ void autoPlay(T_Game_State *gameState)
     }
 }
 
-void updateSnakeModel(T_Game_State *gameState)
+void updateGameState(T_Game_State *gameState)
 {
+    if(gameState->timeToFlash>0){
+        gameState->timeToFlash--;
+    }
+
     // Update body before head, because it must follow the heads previous position
     updateBodyPosition(gameState);
 
@@ -296,6 +300,7 @@ void updateSnakeModel(T_Game_State *gameState)
     {
         eat(gameState);
         updateBodyPosition(gameState);        
+        gameState->timeToFlash+=SETTINGS.timeToFlashDuration;
     }
 }
 
