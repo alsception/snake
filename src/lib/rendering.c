@@ -378,8 +378,10 @@ void setWindowSize(T_Game_State *gameState)
     gameState->columns = w.ws_col;
 
     if(gameState->rowsPrev != gameState->rows || gameState->columnsPrev != gameState->columns)
-    {
-        system("clear");
+    {        
+        printf("\033[2J");
+        //Clear screen
+        /*Alternatively use system("clear");*/
     }
 
     gameState->rowsPrev = gameState->rows;

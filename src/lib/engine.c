@@ -15,7 +15,9 @@
 
 void finalizeInitialization(T_Game_State *gameState)
 {
-    system("clear");
+    printf("\033[2J");
+    //Clear screen
+    /*Alternatively use system("clear");*/
     
     // Initial size print and frame
     // This is important to get rows and columns    
